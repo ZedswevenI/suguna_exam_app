@@ -1,0 +1,3304 @@
+{
+  "status": true,
+  "data":  {
+    "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+    "testNo" : "1088",
+    "questions": [
+      {
+        "_id": "698c05349757a5df9318930f",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionId": "52133",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "If an alphabet is selected from English, alphabet then probability of selecting a vowel is:\n          <img src=\"https://z7iques.s3.ap-south-1.amazonaws.com/questions/img-1771144234515-1771144234695-ccf9b3d048921a0f.jpg\" style=\"max-width:100%; height:auto; margin:8px 0; border-radius:4px;\">",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": null,
+            "textHtml": "\\(\\frac{21}{26}\\)\n          <img src=\"https://z7iques.s3.ap-south-1.amazonaws.com/questions/img-1771144234889-1771144234951-d764fa33abebadd7.jpg\" style=\"max-width:100%; height:auto; margin:8px 0; border-radius:4px;\">",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": null,
+            "textHtml": "\\(\\frac{5}{21}\\)\n          <img src=\"https://z7iques.s3.ap-south-1.amazonaws.com/questions/img-1771144234893-1771144234969-912be4b3c2c919f7.jpg\" style=\"max-width:100%; height:auto; margin:8px 0; border-radius:4px;\">",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": null,
+            "textHtml": "\\(\\frac{5}{26}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": null,
+            "textHtml": "\\(\\frac{16}{26}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "a",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-15T08:30:35.145Z"
+      },
+      {
+        "_id": "698c05349757a5df93189310",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52149",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "short_answer",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A dice is rolled 600 times and the occurrence of the outcomes 1, 2, 3, 4, 5 and 6 are given below in the : Find the probability of getting a prime number (A) \\(\\frac{1}{3}\\) (B) \\(\\frac{2}{3}\\) (C) \\(\\frac{49}{60}\\) (D) \\(\\frac{39}{125}\\)<br><table border=\"1\"><tbody><tr><td>outcomes</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr><tr><td>Frequency</td><td>200</td><td>30</td><td>120</td><td>100</td><td>50</td><td>100</td></tr></tbody></table>",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189311",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52157",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "If a three dight number is chosen at random, what is the probability that chosen number is a multiple of 2?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{499}{900}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{5}{9}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{2}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{500}{899}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189312",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52139",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "From the letters of the word “MOBILE”, if a letter is selected, what is the probability that the letter is a vowel?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{3}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{4}{7}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{3}{7}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{1}{2}\\)",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189313",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52131",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A card is drawn at random from a pack of 52 playing cards. The probability that drawn card being a red king is:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{13}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{1}{26}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{2}{13}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{4}{13}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189314",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52138",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A coin is tossed 1000 times. Head occurs 625 times. Find the probability of getting a tail",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{5}{8}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{7}{8}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{8}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{3}{8}\\)",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189315",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52164",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "From the month of August, whose first day is Tuesday, a day is selected. Find the probability that the selected is not a Tuesday",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{5}{6}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{26}{31}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{6}{31}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{27}{31}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189316",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52167",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "In a cricket match, shane warne takes three wickets from every 27 balls he bowls. Find the probability of a batsman not getting out by shane warne’s bowling",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{9}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{4}{9}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{8}{9}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{5}{9}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189317",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52159",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "If a two digit number is chosen at random, what is the probability that the number chosen is a multiple of 3?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{3}{10}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{29}{100}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{3}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{7}{25}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189318",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52137",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "If a month is selected at random in a year, then find the probability that the month is either March or September",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{12}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{1}{6}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{3}{4}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "None of these",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189319",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52165",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A day is selected from April, whose first day is Monday. Find the probability that the day selected is a Monday",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{7}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{1}{8}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{6}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{2}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931a",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52136",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A card is drawn from a well shuffled pack of 52 cards. The probability of getting neither a club nor a spade is",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{3}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{1}{2}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{4}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{1}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931b",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52162",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "From 101 to 500, if a number is chosen at random, what is the probability that the number ends with 0?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{41}{399}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{40}{399}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{1}{10}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{41}{100}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931c",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52135",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Probability that the month of February may have 5 Wednesday in a leap year is:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{4}{29}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{5}{29}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{2}{7}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{1}{7}\\)",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931d",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52132",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Probability that a number selected from 1, 2, 3, ….35 is a prime number is:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{13}{35}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{12}{35}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{9}{35}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{11}{35}\\)",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931e",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52153",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A bag contains 50 coins and each coin is marked from 51 to 100. One coin is picked at random. What is the probability that the number on the coin is not a prime number?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{3}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{2}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{4}{5}\\)",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df9318931f",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52129",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A box contains 3 black, 5 white and 9 red balls. If a ball is drawn at random what is the probability that it is a red ball?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{3}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{9}{17}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{5}{9}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{5}{17}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.239Z",
+        "updatedAt": "2026-02-11T04:27:32.239Z"
+      },
+      {
+        "_id": "698c05349757a5df93189320",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52134",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A game of chance consist of an spining arrow which comes to rest pointing at one of the number 0, 1, 2, 3, 4, 5 which are equally likely outcome. What is the probability that is a prime number?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{2}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{1}{3}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{3}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{2}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.240Z",
+        "updatedAt": "2026-02-11T04:27:32.240Z"
+      },
+      {
+        "_id": "698c05349757a5df93189321",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52155",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "10 bags of rice, each bag marked 10 kg, actually contained the following weight of rice (in kg) 10.03, 10.09, 9.97, 9.98, 10.01, 9.94, 10.05, 9.99, 9.95, 10.02. Find the probability that the bag chosen at random contains more than 10 kg",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{1}{2}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{3}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{5}{8}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{2}{5}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.240Z",
+        "updatedAt": "2026-02-11T04:27:32.240Z"
+      },
+      {
+        "_id": "698c05349757a5df93189322",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "24a60048-c2bc-4321-86e3-841621bd2ed7",
+        "questionId": "52160",
+        "subject" : {
+          "id" : "44343",
+          "subjectName" : "Maths"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A mathematics book contains 250 pages. A page is selected at random. What is the probability that the number on the page selected is a perfect square ?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\frac{3}{25}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\frac{7}{50}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\frac{3}{50}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\frac{7}{125}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:32.240Z",
+        "updatedAt": "2026-02-11T04:27:32.240Z"
+      },
+      {
+        "_id": "698cbfbb495eca46d3175027",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929335",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following isomerism is not possible for complexes having molecular formulae: ( i) \\(P t \\left(\\right. S C N \\left.\\right)_{2} .3 P E t_{3}\\) ( ii) \\(C o B r . S O_{4} .5 N H_{3}\\) ( iii) \\(F e C l_{2} .6 H_{2} O\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Optical",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Linkage",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Ionisation",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Hydrate",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 1
+      },
+      {
+        "_id": "698cbfbb495eca46d3175026",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929349",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "negativeMarks": 1,
+        "questionHtml": "Complex compounds( s) which is optical active and does not depend upon the orientation of the ligands around metal cation: ( i) \\(\\left[\\right. C o C l_{3} \\left(\\right. N H_{3} \\left.\\right)_{3} \\left]\\right.\\) ( ii) \\(\\left[\\right. C o \\left(\\right. e n \\left.\\right)_{3} \\left]\\right. C l_{3}\\) ( iii) \\(\\left[\\right. C o \\left(\\right. C_{2} O_{4} \\left.\\right)_{2} \\left(\\right. N H_{3} \\left.\\right)_{2} \\left]\\right.^{-}\\) ( iv) \\(\\left[\\right. C r C l_{2} \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. e n \\left.\\right)^{+}\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "( ii), ( iii) and ( iv)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "( i), ( ii) and ( iv)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "( ii) and ( iv)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Only ( ii)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 2
+      },
+      {
+        "_id": "698cbfbb495eca46d3175025",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929336",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Unmatched characteristic of complex \\(\\left[\\right. P d C l_{2} \\left(\\right. H_{2} O \\left.\\right)_{2} \\left(\\right. N H_{3} \\left.\\right)_{2} \\left]\\right.^{2 +}\\) is:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Diamagnetic",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Low spin",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Geometrical isomerism",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Fac. And Mer. form",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 3
+      },
+      {
+        "_id": "698cbfbb495eca46d3175028",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929347",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The ratio of cis and trans-isomers of the complex \\(\\left[\\right. M a_{2} b c d e \\left]\\right.^{n \\pm}\\) is:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "5 : 3",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "2 : 1",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "7 : 3",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "3 : 1",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 4
+      },
+      {
+        "_id": "698cbfbb495eca46d3175029",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929342",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "negativeMarks": 1,
+        "questionHtml": "The following complexes are given: ( 1) \\(t r a n s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{4} C l_{2} \\left]\\right.^{+}\\) ( 2) \\(c i s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. e n \\left.\\right)_{2} \\left]\\right.^{3 +}\\) ( 3) \\(t r a n s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. e n \\left.\\right)_{2} \\left]\\right.^{3 +}\\) ( 4) \\(N i C l_{4}^{2 -}\\) ( 5) \\(T i F_{6}^{2 -}\\) ( 6) \\(C o F_{6}^{3 -}\\) Choose the correct code:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "( 1), ( 2) are optically active, ( 3) is optically inactive",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "( 2) is optically active; ( 1), ( 3) are optically inactive",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "( 4), ( 5) are coloured and ( 6) is colourless",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "( 4) is coloured and ( 5), ( 6) are colourless",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 5
+      },
+      {
+        "_id": "698cbfbb495eca46d317502a",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929330",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Select the correct code of TRUE or FALSE for given statements: ( a) Peroxide ion as well as dioxygen molecule both are paramagnetic species ( b) In set of isomers, \\(\\left[\\right. C r \\left(\\right. H_{2} O \\left.\\right)_{6} \\left]\\right. C l_{3} a n d \\left[\\right. C r C l \\left(\\right. H_{2} O \\left.\\right)_{5} \\left]\\right. C l_{2} . H_{2} O ,\\) both compounds can easily loose water molecule on treatment with \\(c o n c . H_{2} S O_{4}\\) ( c) During transformation \\(N O \\rightarrow N O^{+} ,\\) bond length and magnetic behaviour decreases ( d) An ether is more volatile than alcohol both having same molecular formula",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "FFTT",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "FTFT",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "FTTT",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "FFFT",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 6
+      },
+      {
+        "_id": "698cbfbb495eca46d317502b",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929346",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "A coordination complex of type \\(M X_{2} Y_{2}\\) (M-metal ion; X, y-monodentate ligands), can have either a tetrahedral or a square planar geometry. The maximum number of possible isomers is these two cases are respectively:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "1 and 2",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "2 and 1",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "1 and 3",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "3 and 2",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 7
+      },
+      {
+        "_id": "698cbfbb495eca46d317502c",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929338",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which one of the following complexes exhibit chirality?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. C r \\left(\\right. o x \\left.\\right)_{2} \\left]\\right.^{3}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(c i s - \\left[\\right. P t C l_{2} \\left(\\right. e n \\left.\\right) \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(c i s - \\left[\\right. R h C l_{2} \\left(\\right. N H_{3} \\left.\\right)_{4} \\left]\\right.^{+}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(m e r . \\left[\\right. C o \\left(\\right. N O_{2} \\left.\\right)_{2} \\left(\\right. d i e n \\left.\\right) \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 8
+      },
+      {
+        "_id": "698cbfbb495eca46d317502d",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929333",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Select incorrect statement about complex \\(\\left[\\right. C r \\left(\\right. N O_{2} \\left.\\right) \\left(\\right. N H_{3} \\left.\\right)_{5} \\left]\\right. \\left[\\right. Z n \\left(\\right. S C N \\left.\\right)_{4} \\left]\\right. :\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "It shows co-ordination isomerism",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "It shows optical activity",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "It shows linkage isomerism",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "IUPAC name of the compound is Pentaaminenitrito-N-chromium(III) tetrathiocyanato-S-zincate(II)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 9
+      },
+      {
+        "_id": "698cbfbb495eca46d317502e",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929341",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following statement is true?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "In \\(\\left[\\right. P t C l_{2} \\left(\\right. N H_{3} \\left.\\right)_{2} \\left]\\right.^{3 +}\\) the cis form is optically inactive while trans form is optically active",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "In \\(\\left[\\right. F e \\left(\\right. C_{2} O_{4} \\left.\\right)_{3} \\left]\\right.^{3 -} ,\\) geometrical isomerism does not exist while optical isomerism exists",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "In \\(M a b c d ,\\) square planar complexes show both optical as well as geometrical isomerism",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "In \\(M a b c d\\) tetrahedral complex, optical isomerism cannot be observed",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 10
+      },
+      {
+        "_id": "698cbfbb495eca46d317502f",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929339",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionHtml": "Consider the following isomerism: ( i) Ionization ( ii) Hydrate ( iii) Coordination ( iv) Geometrical ( v) Optical Which of the above isomerisms are exhibited by \\(\\left[\\right. C r \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. O H \\left.\\right)_{2} C l_{2} \\left]\\right.^{+} ?\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "( i) and ( v)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "( ii) and ( iii)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "( iii), (ii) and ( i)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "( iv) and ( v)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 11
+      },
+      {
+        "_id": "698cbfbb495eca46d3175030",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929344",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following complex compound exhibits cir-trans isomerism?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. C o C l \\left(\\right. N H_{3} \\left.\\right)_{4} \\left(\\right. H_{2} O \\left.\\right) \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\left[\\right. C o C l_{3} \\left(\\right. N H_{3} \\left.\\right)_{3} \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\left[\\right. C o C l_{2} \\left(\\right. N H_{3} \\left.\\right) 4 \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "All of these",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 12
+      },
+      {
+        "_id": "698cbfbb495eca46d3175031",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929331",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The total possible coordination isomers for the following compounds respectively are: \\(\\left[\\right. C o \\left(\\right. e n \\left.\\right)_{3} \\left]\\right. \\left[\\right. C r \\left(\\right. C_{2} O_{4} \\left.\\right)_{3} \\left]\\right.\\) \\(\\left[\\right. C u \\left(\\right. N H_{3} \\left.\\right)_{4} \\left]\\right. \\left[\\right. C u C l_{4} \\left]\\right.\\) \\(\\left[\\right. N i \\left(\\right. e n \\left.\\right)_{3} \\left]\\right. \\left[\\right. C o \\left(\\right. N O_{2} \\left.\\right)_{6} \\left]\\right.\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "4,4,4",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "2, 2, 2",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "2,2,4",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "4, 2, 3",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 13
+      },
+      {
+        "_id": "698cbfbb495eca46d3175032",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929345",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following will have three stereoisomeric forms? ( i) \\(\\left[\\right. C r \\left(\\right. N O_{3} \\left.\\right)_{3} \\left(\\right. N H_{3} \\left.\\right)_{3} \\left]\\right.\\) ( ii) \\(K_{3} \\left[\\right. C o \\left(\\right. C_{2} O_{4} \\left.\\right)_{3} \\left]\\right.\\) ( iii) \\(K_{3} \\left[\\right. C o C l_{2} \\left(\\right. C_{2} O_{4} \\left.\\right)_{2} \\left]\\right.\\) ( iv) \\(\\left[\\right. C o B r C l \\left(\\right. e n \\left.\\right)_{2} \\left]\\right.\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "( iii) and ( iv)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "( i), ( iii) and ( iv)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "( iv) only",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "All four",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 14
+      },
+      {
+        "_id": "698cbfbb495eca46d3175033",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929337",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following has largest number of isomers?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. C o \\left(\\right. e n \\left.\\right)_{2} C l_{2} \\left]\\right.^{+}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{5} C l \\left]\\right.^{2 +}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\left[\\right. I r \\left(\\right. P R_{3} \\left.\\right)_{2} H \\left(\\right. C O \\left.\\right) \\left]\\right.^{2 +}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\left[\\right. R u \\left(\\right. N H_{3} \\left.\\right)_{4} C l_{2} \\left]\\right.^{+}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 15
+      },
+      {
+        "_id": "698cbfbb495eca46d3175034",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929348",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "\\(\\left[\\right. P d C l_{2} \\left(\\right. P M e_{3} \\left.\\right)_{2} \\left]\\right.\\) is a diamagnetic complex of \\(P d \\left(\\right. I I I \\left.\\right)\\) . How many total isomers are possible of analogous paramagentic complex of \\(N I \\left(\\right. I I \\left.\\right) ?\\)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Zero",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "1",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "2",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "3",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 16
+      },
+      {
+        "_id": "698cbfbb495eca46d3175035",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929332",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Select the incorrect match:",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. C o \\left(\\right. N O_{2} \\left.\\right) \\left(\\right. H_{2} O \\left.\\right) \\left(\\right. e n \\left.\\right)_{2} \\left]\\right. C l_{2} , \\left[\\right. C o C l \\left(\\right. N O_{2} \\left.\\right) \\left(\\right. e n \\left.\\right)_{2} \\left]\\right. C l . H_{2} O :\\) Hydrate isomerism",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\left[\\right. C u \\left(\\right. N H_{3} \\left.\\right)_{4} \\left]\\right. \\left[\\right. P t C l_{4} \\left]\\right. . \\left[\\right. C u C l \\left(\\right. N H_{3} \\left.\\right)_{3} \\left]\\right. \\left[\\right. P t C l_{3} \\left(\\right. N H_{3} \\left.\\right) \\left]\\right. :\\) Co-ordination isomerism",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\left[\\right. N i \\left(\\right. C N \\left.\\right) \\left(\\right. H_{2} O \\left.\\right) \\left(\\right. N H_{3} \\left.\\right)_{4} \\left]\\right. C l , \\left[\\right. N i C l \\left(\\right. H_{2} O \\left.\\right) \\left(\\right. N H_{3} \\left.\\right)_{4} \\left]\\right. C N :\\) Ionization isomerism",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\left[\\right. C r \\left(\\right. N O_{2} \\left.\\right) \\left(\\right. N H_{3} \\left.\\right)_{5} \\left]\\right. \\left[\\right. Z n C l_{4} \\left]\\right. , \\left[\\right. C r \\left(\\right. N O_{3} \\left.\\right) \\left(\\right. N H_{3} \\left.\\right)_{5} \\left]\\right. \\left[\\right. Z n C l_{4} \\left]\\right. :\\) Linkage isomerism",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 17
+      },
+      {
+        "_id": "698cbfbb495eca46d3175036",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929334",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Complex compound(s) having even number of space (stereo) isomers is/are: (where AA-symmetrical bidentate ligand and a, b,c,d, e-monodentate ligands)",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. M \\left(\\right. A A \\left.\\right)_{2} b_{2} \\left]\\right.^{n \\pm}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(M e_{3} b_{3} \\left]\\right.^{n \\pm}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(\\left[\\right. M a_{3} b c d \\left]\\right.^{n \\pm}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(\\left[\\right. M a_{2} b c d e \\left]\\right.^{n \\pm}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 18
+      },
+      {
+        "_id": "698cbfbb495eca46d3175037",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929340",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which complex is likely to show optical activity?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(t r a n s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{4} C l_{2} \\left]\\right.^{+}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\left[\\right. C r \\left(\\right. H_{2} O \\left.\\right)_{6} \\left]\\right.^{3 +}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(c i s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. e n \\left.\\right)_{2} \\left]\\right.\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(t r a n s - \\left[\\right. C o \\left(\\right. N H_{3} \\left.\\right)_{2} \\left(\\right. e n \\left.\\right)_{2} \\left]\\right.^{3 +}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.296Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 19
+      },
+      {
+        "_id": "698cbfbb495eca46d3175038",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "51b88132-45bb-489e-9b02-b8b86fb72923",
+        "questionId": "929343",
+        "subject" : {
+          "id" : "44543",
+          "subjectName" : "CHEMISTRY"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following can show geometrical isomerism?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(\\left[\\right. P t \\left(\\right. N H_{2} - \\underset{C H_{3}}{\\underset{\\mid}{C} H} - \\underset{C H_{3}}{\\underset{\\mid}{C} H} - N H_{2} \\left.\\right)_{2} \\left]\\right.^{2 +}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(\\left[\\right. C o \\left(\\right. e n \\left.\\right)_{2} N H_{3} C l \\left]\\right.^{2 +}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Both ( A) and ( B)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "None of these",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T17:43:23.297Z",
+        "updatedAt": "2026-02-27T07:18:28.806Z",
+        "sortOrder": 20
+      },
+      {
+        "_id": "698c053c9757a5df931896d3",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45360",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following indicates the relative randomness of particles in the 3 states of matter?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Solid > Liquid > Gas",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Liquid > Solid > Gas",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Liquid < Solid < Gas",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Gas > Liquid > Solid",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c8",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45366",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following factors, when increased, the rate of evaporation decreases?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Temperature of liquid",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Surface area of liquid exposed to surrounding",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Humidity in air",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "Latent heat of condensation",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c7",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45358",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The substance having the maximum tendency to flow is",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Water",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Sodium",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Sodium chloride",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Chlorine",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c6",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45371",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "During evaporation, particles of a liquid change into vapours only",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "From the surface",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "From the bulk",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "From the both surface and bulk",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Neither from surface nor from bulk",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c5",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45370",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "When hot liquid allow to cool, it is likely to",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Cool faster and slower later on",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "Cool slower one later on faster",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Uniformly cool down",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "None of these",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c4",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45368",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The temperature above which a gas cannot be converted into liquid state i.e liquefied, however, high pressure you may apply is known as",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Melting temperature",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Critical temperature",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "Boiling temperature",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Evaporation temperature",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c3",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45361",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The evaporation of a liquid can be best carried out in a",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Beaker",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "China dish",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "test tube",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Flask",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c2",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45362",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "When the vapour pressure of a liquid is equal to its atmospheric pressure then it",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Freezes",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Evaporates",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Boils",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "Does not undergo any change",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c1",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45373",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Pure air contains",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "\\(79 \\% N_{2}\\)",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "\\(60 \\% N_{2}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "\\(50 \\% N_{2}\\)",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "\\(35 \\% N_{2}\\)",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.665Z",
+        "updatedAt": "2026-02-11T04:27:40.665Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896d4",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45357",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "In which of the following substances, the intermolecular force of attraction is maximum?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Iron rod",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "Kerosene oil",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Glycerin",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Dry air",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896c9",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45372",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following statement is not correct?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Matter is something that occupies space",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Inter particle spaces are maximum in the gaseous state of substance",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Particles which constitute the matter follow a zig-zag path",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "Solid state is the most compact state of a substance",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896d2",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45359",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "The two major gases present in air are",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Nitrogen and oxygen",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "Nitrogen and hydrogen",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Hydrogen and oxygen",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Nitrogen and carbondioxide",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896d1",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45367",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following statement does not go with the liquid state?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Particles are loosely packed in the liquid state",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Fluidity is maximum in the liquid state",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "Liquids cannot be compressed much",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Liquids take up the shape of any container in which they are placed",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896d0",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45364",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "In which of the following are most favorable condition for liquefaction of ammonia?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "High pressure, high temperature",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "High pressure, low temperature",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "Low pressure, low temperature",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Low pressure, high temperature",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896cf",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45369",
+        "questionType": "mcq_single",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "When we put crystals of potassium permanganate \\(\\left(\\right. K M n O_{4} \\left.\\right)\\) in a beaker containing water, we observe that after some time whole water has turned pink. This is due to",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Brownian movement",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Melting of \\(K M n O_{4}\\) crystal",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Sublimation of crystals",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Diffusion",
+            "images": [],
+            "isCorrect": true
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "D",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896ce",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45363",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "At higher altitudes",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Boiling point of a liquid increases",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Boiling point of a liquid decreases",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "No change in boiling point",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Melting point of solid increases",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896cd",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45356",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following compounds will undergo sublimation?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Common salt",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Camphor",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "Sugar",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Sand",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896cc",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45365",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Which of the following is not correct regarding gases?",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Gases exert pressure",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "Gases have large intermolecular spaces",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Gases have weak tendency to diffuse",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "D",
+            "textHtml": "Gases have weak intermolecular forces of attraction",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "C",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896cb",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45375",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "images": [],
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "Water \\(\\rightleftharpoons\\) vapour conversion favored by",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "High temperature and high pressure",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "B",
+            "textHtml": "High temperature and low pressure",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "C",
+            "textHtml": "Low temperature and high pressure",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Low temperature and low pressure",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "B",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      },
+      {
+        "_id": "698c053c9757a5df931896ca",
+        "tenantId": "2b94c137-3397-426a-b563-58f378a06142",
+        "testId": "192ab15f-4d68-4c6a-a5b2-c86ccdbc9ed2",
+        "questionId": "45374",
+        "questionType": "mcq_single",
+        "difficulty": "easy",
+        "subject" : {
+          "id" : "44563",
+          "subjectName" : "Physics"
+        },
+        "images": [],
+        "positiveMarks": 3,
+        "negativeMarks": 1,
+        "questionHtml": "When water particles condense on air , it forms",
+        "passageHtml": "",
+        "instructionHtml": "",
+        "questionOptions": [
+          {
+            "key": "A",
+            "textHtml": "Mist or fog",
+            "images": [],
+            "isCorrect": true
+          },
+          {
+            "key": "B",
+            "textHtml": "Cloud",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "C",
+            "textHtml": "Frost",
+            "images": [],
+            "isCorrect": false
+          },
+          {
+            "key": "D",
+            "textHtml": "Vapour",
+            "images": [],
+            "isCorrect": false
+          }
+        ],
+        "solutionHtml": "",
+        "enablePassage": false,
+        "enableInstruction": false,
+        "enableSolution": false,
+        "correctAnswer": "A",
+        "tags": [],
+        "status": "active",
+        "createdBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "updatedBy": "2de47f11-eff8-4f9b-a0d4-dd15ae9aa724",
+        "createdAt": "2026-02-11T04:27:40.666Z",
+        "updatedAt": "2026-02-11T04:27:40.666Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,461 @@
+
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:suguna_exam_app/modules/test_player/controllers/test_player_controller.dart';
+
+import '../../../core/services/assigment_api_services.dart';
+import '../../../core/services/service_locator.dart';
+import '../../topic_assignments/controllers/topic_assignments_controller.dart';
+
+// ============================================================
+// API PARSER - Standalone Class
+// ============================================================
+
+class Subject {
+  final String id;
+  final String name;
+
+  Subject({required this.id, required this.name});
+
+  @override
+  bool operator ==(Object other) => other is Subject && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+enum QuestionType {
+  mcqSingle,
+  mcqMultiple,
+  matchTheFollowing,
+  numerical,
+  subjective,
+  trueFalse,
+  singleDropdown,
+  multiDropdown,
+  textType,
+}
+
+class MatchPair {
+  final String left;
+  final List<String> rightOptions;
+
+  MatchPair({required this.left, required this.rightOptions});
+}
+
+class QuestionCategory {
+  final String id;
+  final String name;
+  final int questionCount;
+  final Subject? subject;
+  final List<Question> questions;
+
+  QuestionCategory({
+    required this.id,
+    required this.name,
+    this.subject,
+    required this.questionCount,
+    required this.questions,
+  });
+}
+class Question {
+  final int number;
+  final double positiveMarks;
+  final double negativeMarks;
+  final String text;
+  final String questionId;
+  final Subject? subject;
+  final QuestionType type;
+  final List<String> options;
+  final List<MatchPair>? matchPairs;
+  final double? minRange;
+  final double? maxRange;
+  final String? questionHtml;
+
+  // ✅ Correct Answer Storage
+  final String? correctAnswer;
+  final List<String>? correctAnswers;
+  final Map<String, String>? correctMatchAnswers;
+  final double? correctNumericalAnswer;
+
+  // ✅ User Answers
+  String? selectedAnswer;
+  List<String>? selectedAnswers;
+  Map<String, String>? matchAnswers;
+  double? numericalAnswer;
+  String? textAnswer;
+
+  QuestionStatus status;
+
+  Question({
+    required this.number,
+    required this.text,
+    required this.type,
+    required this.questionId,
+    this.options = const [],
+    this.matchPairs,
+    this.minRange,
+    this.maxRange,
+    this.questionHtml,
+    this.subject,
+    this.correctAnswer,
+    this.correctAnswers,
+    this.correctMatchAnswers,
+    this.correctNumericalAnswer,
+    this.positiveMarks = 3,
+    this.negativeMarks = 1,
+    this.selectedAnswer,
+    this.selectedAnswers,
+    this.matchAnswers,
+    this.numericalAnswer,
+    this.textAnswer,
+    this.status = QuestionStatus.notVisited,
+  });
+}
+enum QuestionStatus {
+  answered,
+  notAnswered,
+  markedForReview,
+  answeredAndMarked,
+  notVisited,
+}
+
+
+
+class TestApiParser {
+
+  static String fixBrokenJson(String raw) {
+    return raw
+        .replaceAll('\t', '\\t')
+        .replaceAll('\n\n', '\n')   // newline
+        .replaceAll('\r', '\\r')   // carriage return
+    // Fix HTML attributes
+        .replaceAllMapped(
+      RegExp(r'style="([^"]*)"'),
+          (m) => 'style=\\"${m[1]}\\"',
+    )
+        .replaceAllMapped(
+      RegExp(r'align="([^"]*)"'),
+          (m) => 'align=\\"${m[1]}\\"',
+    )
+
+    // ✅ Fix ONLY single-backslash LaTeX (ignore already-escaped \\)
+        .replaceAllMapped(
+      RegExp(r'(?<!\\)\\([a-zA-Z()])'),
+          (m) => '\\\\${m[1]}',
+    );
+  }
+
+  static bool _isDoubleEncoded(String s) {
+    return s.trim().startsWith('"') && s.contains('\\n');
+  }
+
+  static Future<Map<String, dynamic>> loadQuestionsJson() async {
+    // final _apiService = ServiceLocator.get<AssignmentApiServices>();
+    final rawString = await rootBundle.loadString('assets/test.json');
+
+    final fixedString = fixBrokenJson(rawString);
+
+    // Handle double-encoded JSON
+    if (_isDoubleEncoded(fixedString)) {
+      final inner = json.decode(fixedString);
+      return json.decode(inner) as Map<String, dynamic>;
+    }
+
+    return json.decode(fixedString) as Map<String, dynamic>;
+  }
+
+
+  // Parse from JSON string
+  static Future<List<QuestionCategory>> parseFromJsonString(Map<String, dynamic> jsonString) async {
+    try {
+      final Map<String, dynamic> jsons =   await loadQuestionsJson();
+      // return parseApiResponse(jsonString);
+      return parseApiResponse(jsons);
+    } catch (e) {
+      print('Error parsing JSON string: $e');
+      return [];
+    }
+  }
+
+  // static List<QuestionCategory> parseApiResponse(
+  //     Map<String, dynamic> jsonData,
+  //     ) {
+  //   try {
+  //     final Map<String, dynamic> correctAnswersMap = {};
+  //     final testData = jsonData['data'] as Map<String, dynamic>;
+  //     final List<dynamic> questionsJson = testData['questions'] as List<dynamic>;
+  //
+  //     // Group by subject instead of question type
+  //     final Map<String, List<Question>> questionsBySubject = {};
+  //     final Map<String, Subject> subjectLookup = {};
+  //
+  //     for (int i = 0; i < questionsJson.length; i++) {
+  //       final qJson = questionsJson[i] as Map<String, dynamic>;
+  //       final correctAnswer = qJson['correctAnswer'];
+  //
+  //       // Parse subject
+  //       final subjectJson = qJson['subject'] as Map<String, dynamic>?;
+  //       final subject = subjectJson != null
+  //           ? Subject(
+  //         id: subjectJson['id']?.toString() ?? 'unknown',
+  //         name: subjectJson['subjectName']?.toString() ?? 'General',
+  //       )
+  //           : Subject(id: 'unknown', name: 'General');
+  //
+  //       subjectLookup[subject.id] = subject;
+  //
+  //       final questionTypeFromApi = qJson['questionType'] as String? ?? 'mcq_single';
+  //       final parsedType = _parseQuestionType(questionTypeFromApi);
+  //
+  //       final question = Question(
+  //         questionId: qJson['questionId'] as String? ?? '',
+  //         number: i + 1,
+  //         positiveMarks: _parseToDouble(qJson['positiveMarks'], defaultValue: 3),
+  //         negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
+  //         text: qJson['questionText'] as String? ?? '',
+  //         questionHtml: qJson['questionHtml'] as String?,
+  //         type: parsedType,
+  //         subject: subject,                          // ← PASS SUBJECT
+  //         options: _parseOptions(
+  //           qJson['questionOptions'] as List<dynamic>? ?? [],
+  //         ),
+  //         status: QuestionStatus.notVisited,
+  //       );
+  //
+  //       if (correctAnswer != null) {
+  //         correctAnswersMap['question_${i + 1}'] = correctAnswer;
+  //       }
+  //
+  //       questionsBySubject.putIfAbsent(subject.id, () => []).add(question);
+  //     }
+  //
+  //     // Build categories from subjects
+  //     final List<QuestionCategory> categories = [];
+  //     int categoryIndex = 0;
+  //
+  //     questionsBySubject.forEach((subjectId, questions) {
+  //       final subject = subjectLookup[subjectId]!;
+  //       categories.add(
+  //         QuestionCategory(
+  //           id: 'category_$categoryIndex',
+  //           name: subject.name,           // ← Subject name as tab label
+  //           subject: subject,             // ← pass subject (see below)
+  //           questionCount: questions.length,
+  //           questions: questions,
+  //         ),
+  //       );
+  //       categoryIndex++;
+  //     });
+  //
+  //     try {
+  //       final controller = Get.find<TestPlayerController>();
+  //       controller.correctAnswersMap = correctAnswersMap;
+  //     } catch (e) {
+  //       print('Controller not found: $e');
+  //     }
+  //
+  //     return categories;
+  //   } catch (e) {
+  //     print('Error parsing API response: $e');
+  //     return [];
+  //   }
+  // }
+
+
+  // Main parser for API response
+  static List<QuestionCategory> parseApiResponse(
+      Map<String, dynamic> jsonData,
+      ) {
+    try {
+      final Map<String, dynamic> correctAnswersMap = {};
+      final testData = jsonData['data'] as Map<String, dynamic>;
+
+      final List<dynamic> questionsJson =
+      testData['questions'] as List<dynamic>;
+      final Map<QuestionType, List<Question>> questionsByType = {};
+
+      for (int i = 0; i < questionsJson.length; i++) {
+        final qJson = questionsJson[i] as Map<String, dynamic>;
+        final subjectJson = qJson['subject'] as Map<String, dynamic>?;
+        final subject = subjectJson != null
+            ? Subject(
+          id: subjectJson['id']?.toString() ?? 'unknown',
+          name: subjectJson['subjectName']?.toString() ?? 'General',
+        )
+            : null;
+        final correctAnswer = qJson['correctAnswer'];
+        final questionTypeFromApi =
+            qJson['questionType'] as String? ?? 'mcq_single';
+        final parsedType = _parseQuestionType(questionTypeFromApi);
+        final question = Question(
+          questionId: qJson['questionId'] as String? ?? '',
+          number: i + 1,
+          subject: subject,
+          positiveMarks: _parseToDouble(qJson['positiveMarks'], defaultValue: 3),
+          negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
+          text: qJson['questionText'] as String? ?? '',
+          questionHtml: qJson['questionHtml'] as String?,
+          type: parsedType,
+          options: _parseOptions(
+            qJson['questionOptions'] as List<dynamic>? ?? [],
+          ),
+
+          status: QuestionStatus.notVisited,
+        );
+        if (correctAnswer != null) {
+          correctAnswersMap['question_${i + 1}'] = correctAnswer;
+        }
+        questionsByType.putIfAbsent(parsedType, () => []).add(question);
+      }
+
+      final List<QuestionCategory> categories = [];
+      int categoryIndex = 0;
+
+      questionsByType.forEach((type, questions) {
+        categories.add(
+          QuestionCategory(
+            id: 'category_$categoryIndex',
+            name: _getCategoryNameFromType(type),
+            questionCount: questions.length,
+            questions: questions,
+          ),
+        );
+        categoryIndex++;
+      });
+
+      try {
+        final controller = Get.find<TestPlayerController>();
+        controller.correctAnswersMap = correctAnswersMap;
+      } catch (e) {
+        print('Controller not found: $e');
+      }
+
+      return categories;
+    } catch (e) {
+      print('Error parsing API response: $e');
+      return [];
+    }
+  }
+
+  static double _parseToDouble(dynamic value, {double defaultValue = 0}) {
+    if (value == null) return defaultValue;
+
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    if (value is String) {
+      return double.tryParse(value) ?? defaultValue;
+    }
+
+    return defaultValue;
+  }
+
+  static String _getCategoryNameFromType(QuestionType type) {
+    switch (type) {
+      case QuestionType.mcqSingle:
+        return 'MCQ (Single Correct)';
+
+      case QuestionType.mcqMultiple:
+        return 'MCQ (Multiple Correct)';
+
+      case QuestionType.matchTheFollowing:
+        return 'Match the Following';
+
+      case QuestionType.numerical:
+        return 'Numerical / Integer';
+
+      case QuestionType.textType:
+        return 'Short Answer';
+
+      case QuestionType.subjective:
+        return 'Subjective';
+
+      case QuestionType.trueFalse:
+        return 'True / False';
+
+      case QuestionType.singleDropdown:
+        return 'Dropdown (Single Select)';
+
+      case QuestionType.multiDropdown:
+        return 'Dropdown (Multiple Select)';
+
+      default:
+        return 'Other Questions';
+    }
+  }
+
+  // Parse question type from API string to enum
+  static QuestionType _parseQuestionType(String apiType) {
+    switch (apiType.toLowerCase()) {
+      case 'mcq_single':
+        return QuestionType.mcqSingle;
+      case 'mcq_multiple':
+        return QuestionType.mcqMultiple;
+      case 'match_the_following':
+      case 'maq':
+      case 'matrix':
+        return QuestionType.matchTheFollowing;
+      case 'integer':
+      case 'numerical':
+        return QuestionType.numerical;
+      case 'short_answer':
+        return QuestionType.textType;
+      case 'subjective':
+        return QuestionType.subjective;
+      case 'true_false':
+      case 'boolean':
+        return QuestionType.trueFalse;
+      case 'single_dropdown':
+      case 'dropdown':
+        return QuestionType.singleDropdown;
+      case 'multi_dropdown':
+        return QuestionType.multiDropdown;
+      default:
+        return QuestionType.mcqSingle; // Default fallback
+    }
+  }
+
+  // Parse options from API
+  static List<String> _parseOptions(List<dynamic> optionsJson) {
+    return optionsJson
+        .map((opt) {
+      final optMap = opt as Map<String, dynamic>;
+      return optMap['textHtml'] as String? ??
+          optMap['text'] as String? ??
+          '';
+    })
+        .where((text) => text.isNotEmpty)
+        .toList();
+  }
+
+  String normalizeQuestionHtml(String input) {
+    return input
+    // Fix escaped LaTeX brackets
+        .replaceAll(r'\\(', r'\(')
+        .replaceAll(r'\\)', r'\)')
+
+    // Fix escaped square brackets
+        .replaceAll(r'\\[', r'\[')
+        .replaceAll(r'\\]', r'\]')
+
+    // Replace smart minus with normal minus
+        .replaceAll('−', '-')
+
+    // Replace pi symbol
+        .replaceAll('π', r'\pi')
+
+    // Replace union symbol
+        .replaceAll('∪', r'\cup')
+
+    // Fix common inverse trig issues
+        .replaceAll('sin−1', r'\sin^{-1}')
+        .replaceAll('cos−1', r'\cos^{-1}')
+        .replaceAll('tan−1', r'\tan^{-1}')
+        .replaceAll('cot−1', r'\cot^{-1}')
+        .replaceAll('sec−1', r'\sec^{-1}')
+        .replaceAll('cosec−1', r'\cosec^{-1}');
+  }
+
+}
