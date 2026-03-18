@@ -17,6 +17,8 @@ import '../views/test_review_view.dart';
 
 import 'package:flutter/services.dart';
 
+enum CalculatorType { none, basic, scientific }
+
 class TestPlayerController extends GetxController {
   final TextEditingController numericalController = TextEditingController();
   final Rx<SubjectModel?> selectedSubject = Rx<SubjectModel?>(null);
@@ -25,6 +27,32 @@ class TestPlayerController extends GetxController {
 
   final selectedSubjectFilter = 'All'.obs;
   List<Subject> availableSubjects = [];
+
+  bool showCalculator = false;
+  CalculatorType calculatorType = CalculatorType.basic;
+
+  void toggleCalculator() {
+    showCalculator = !showCalculator;
+    updateView();
+  }
+
+  void setCalculatorType(CalculatorType type) {
+    calculatorType = type;
+    updateView();
+  }
+
+  void _parseCalculatorType(Map<String, dynamic> json) {
+    // calculatorType = CalculatorType.scientific;
+    calculatorType = CalculatorType.scientific;
+    // final type = json['calculator_type']?.toString().toLowerCase();
+    // if (type == 'scientific') {
+    //   calculatorType = CalculatorType.scientific;
+    // } else if (type == 'basic') {
+    //   calculatorType = CalculatorType.basic;
+    // } else {
+    //   calculatorType = CalculatorType.none;
+    // }
+  }
 
   void updateView() => update(['palette']);
 
@@ -72,6 +100,7 @@ class TestPlayerController extends GetxController {
           stored['testJson'],
         );
         selectedQuestions = stored['testJson'];
+        _parseCalculatorType(stored['testJson']);
         final List answers = stored['result']['answers'] ?? [];
         for (var item in answers) {
           final questionNumber = item['questionNumber'];
@@ -180,6 +209,7 @@ class TestPlayerController extends GetxController {
     totalReAttempts = stored == null || stored['numberOfReattempts'] == null ? 1 :  stored['numberOfReattempts'] + 1;
     final Map<String, dynamic> jsonData = selectedQuestions;
     categories.addAll(await TestApiParser.parseFromJsonString(jsonData));
+    _parseCalculatorType(jsonData);
     _extractSubjects();
     isLoading = false;
     _startTimer();
@@ -194,6 +224,7 @@ class TestPlayerController extends GetxController {
     final Map<String, dynamic> jsonData =
         TopicAssignmentsController.to.selectedQuestions ?? {};
     categories.addAll(await TestApiParser.parseFromJsonString(jsonData));
+    _parseCalculatorType(jsonData);
     _extractSubjects();
     isLoading = false;
     updateView();

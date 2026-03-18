@@ -14,7 +14,7 @@ class HomeAssignmentsView extends GetView<HomeAssignmentsController> {
     // return AppLayout(child: , selectedRoute: selectedRoute)
     return AppLayout(
       subjectName: "Assignments",
-      selectedRoute: AppRoutes.home,
+      selectedRoute: AppRoutes.discussion,
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (ResponsiveHelper.isTablet(context)) {
@@ -124,8 +124,7 @@ class HomeAssignmentsView extends GetView<HomeAssignmentsController> {
                     value: y,
                     child: Text(y),
                   ),
-                )
-                    .toList(),
+                ).toList(),
                 onChanged: controller.onAcademicYearChanged,
               );
             }),

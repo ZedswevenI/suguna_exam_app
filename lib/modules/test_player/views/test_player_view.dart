@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:suguna_exam_app/core/theme/app_colors.dart';
@@ -687,17 +689,21 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
       ),
       child: Column(
         children: [
-          _buildPaletteHeader(),
-          Flexible(child: _buildCategoryPalettes()),
-          _buildLegend(),
+          _buildPaletteHeader(controller),
+          if (controller.showCalculator)
+            Expanded(child: _buildCalculator(controller))
+          else ...[
+            Flexible(child: _buildCategoryPalettes()),
+            _buildLegend(),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPaletteHeader() {
+  Widget _buildPaletteHeader(TestPlayerController controller) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -709,17 +715,384 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
       ),
       child: Row(
         children: [
-          Icon(Icons.grid_view_rounded, color: AppColors.primary, size: 20),
+          Icon(
+            controller.showCalculator ? Icons.calculate_rounded : Icons.grid_view_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
           const SizedBox(width: 12),
-          const Text(
-            'Question Palette',
-            style: TextStyle(
+          Text(
+            controller.showCalculator ? 'Calculator' : 'Question Palette',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
           ),
+          const Spacer(),
+          if (controller.calculatorType != CalculatorType.none)
+            InkWell(
+              onTap: controller.toggleCalculator,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: controller.showCalculator
+                      ? AppColors.primary.withOpacity(0.15)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  controller.showCalculator ? Icons.grid_view_rounded : Icons.calculate_rounded,
+                  color: controller.showCalculator ? AppColors.primary : Colors.grey.shade600,
+                  size: 20,
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // CALCULATOR
+  // ============================================================
+
+  String _calcDisplay = '0';
+  String _calcExpression = '';
+  String _calcOperator = '';
+  double _calcFirstOperand = 0;
+  bool _calcShouldResetDisplay = false;
+
+  Widget _buildCalculator(TestPlayerController controller) {
+    return controller.calculatorType == CalculatorType.scientific
+        ? _buildScientificCalculator()
+        : _buildBasicCalculator();
+  }
+
+  String _formatResult(double value) {
+    return value == value.truncateToDouble()
+        ? value.toInt().toString()
+        : value.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+  }
+
+  void _handleCalcInput(String value, void Function(void Function()) setCalcState) {
+    setCalcState(() {
+      if (value == 'C') {
+        _calcDisplay = '0';
+        _calcExpression = '';
+        _calcOperator = '';
+        _calcFirstOperand = 0;
+        _calcShouldResetDisplay = false;
+      } else if (value == '⌫') {
+        if (_calcDisplay.length > 1) {
+          _calcDisplay = _calcDisplay.substring(0, _calcDisplay.length - 1);
+        } else {
+          _calcDisplay = '0';
+        }
+      } else if (value == '+' || value == '-' || value == '×' || value == '÷') {
+        _calcFirstOperand = double.tryParse(_calcDisplay) ?? 0;
+        _calcOperator = value;
+        _calcExpression = '$_calcDisplay $value';
+        _calcShouldResetDisplay = true;
+      } else if (value == 'xʸ') {
+        _calcFirstOperand = double.tryParse(_calcDisplay) ?? 0;
+        _calcOperator = 'xʸ';
+        _calcExpression = '$_calcDisplay ^';
+        _calcShouldResetDisplay = true;
+      } else if (value == '=') {
+        double secondOperand = double.tryParse(_calcDisplay) ?? 0;
+        double result = 0;
+        switch (_calcOperator) {
+          case '+':
+            result = _calcFirstOperand + secondOperand;
+            break;
+          case '-':
+            result = _calcFirstOperand - secondOperand;
+            break;
+          case '×':
+            result = _calcFirstOperand * secondOperand;
+            break;
+          case '÷':
+            result = secondOperand != 0 ? _calcFirstOperand / secondOperand : 0;
+            break;
+          case 'xʸ':
+            result = math.pow(_calcFirstOperand, secondOperand).toDouble();
+            break;
+          default:
+            result = secondOperand;
+        }
+        _calcExpression = '$_calcExpression $_calcDisplay =';
+        _calcDisplay = _formatResult(result);
+        _calcOperator = '';
+        _calcShouldResetDisplay = true;
+      } else if (value == '.') {
+        if (!_calcDisplay.contains('.')) {
+          _calcDisplay = '$_calcDisplay.';
+        }
+      } else if (value == '±') {
+        if (_calcDisplay != '0') {
+          _calcDisplay = _calcDisplay.startsWith('-')
+              ? _calcDisplay.substring(1)
+              : '-$_calcDisplay';
+        }
+      } else if (value == '%') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcDisplay = _formatResult(current / 100);
+      } else if (value == '√') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        if (current >= 0) {
+          _calcExpression = '√$_calcDisplay';
+          _calcDisplay = _formatResult(math.sqrt(current));
+        }
+      } else if (value == 'sin') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = 'sin($_calcDisplay°)';
+        _calcDisplay = _formatResult(math.sin(current * math.pi / 180));
+        _calcShouldResetDisplay = true;
+      } else if (value == 'cos') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = 'cos($_calcDisplay°)';
+        _calcDisplay = _formatResult(math.cos(current * math.pi / 180));
+        _calcShouldResetDisplay = true;
+      } else if (value == 'tan') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = 'tan($_calcDisplay°)';
+        _calcDisplay = _formatResult(math.tan(current * math.pi / 180));
+        _calcShouldResetDisplay = true;
+      } else if (value == 'log') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        if (current > 0) {
+          _calcExpression = 'log($_calcDisplay)';
+          _calcDisplay = _formatResult(math.log(current) / math.ln10);
+          _calcShouldResetDisplay = true;
+        }
+      } else if (value == 'ln') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        if (current > 0) {
+          _calcExpression = 'ln($_calcDisplay)';
+          _calcDisplay = _formatResult(math.log(current));
+          _calcShouldResetDisplay = true;
+        }
+      } else if (value == 'x²') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = '$_calcDisplay²';
+        _calcDisplay = _formatResult(current * current);
+        _calcShouldResetDisplay = true;
+      } else if (value == 'x³') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = '$_calcDisplay³';
+        _calcDisplay = _formatResult(current * current * current);
+        _calcShouldResetDisplay = true;
+      } else if (value == '1/x') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        if (current != 0) {
+          _calcExpression = '1/$_calcDisplay';
+          _calcDisplay = _formatResult(1 / current);
+          _calcShouldResetDisplay = true;
+        }
+      } else if (value == 'π') {
+        _calcDisplay = _formatResult(math.pi);
+        _calcShouldResetDisplay = true;
+      } else if (value == 'e') {
+        _calcDisplay = _formatResult(math.e);
+        _calcShouldResetDisplay = true;
+      } else if (value == 'n!') {
+        int current = (double.tryParse(_calcDisplay) ?? 0).toInt();
+        if (current >= 0 && current <= 20) {
+          int factorial = 1;
+          for (int i = 2; i <= current; i++) {
+            factorial *= i;
+          }
+          _calcExpression = '$current!';
+          _calcDisplay = factorial.toString();
+          _calcShouldResetDisplay = true;
+        }
+      } else if (value == '|x|') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = '|$_calcDisplay|';
+        _calcDisplay = _formatResult(current.abs());
+        _calcShouldResetDisplay = true;
+      } else if (value == 'EXP') {
+        double current = double.tryParse(_calcDisplay) ?? 0;
+        _calcExpression = 'e^$_calcDisplay';
+        _calcDisplay = _formatResult(math.exp(current));
+        _calcShouldResetDisplay = true;
+      } else {
+        // Number input
+        if (_calcShouldResetDisplay) {
+          _calcDisplay = value;
+          _calcShouldResetDisplay = false;
+        } else {
+          _calcDisplay = _calcDisplay == '0' ? value : _calcDisplay + value;
+        }
+      }
+    });
+  }
+
+  Widget _buildCalcDisplay() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      color: const Color(0xFFF8F9FC),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_calcExpression.isNotEmpty)
+            Text(
+              _calcExpression,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              _calcDisplay,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w300,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- BASIC CALCULATOR ----
+
+  Widget _buildBasicCalculator() {
+    return StatefulBuilder(
+      builder: (context, setCalcState) {
+        void onPressed(String value) => _handleCalcInput(value, setCalcState);
+
+        return Column(
+          children: [
+            _buildCalcDisplay(),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  children: [
+                    _buildCalcRow(['C', '⌫', '%', '÷'], onPressed, isTopRow: true),
+                    _buildCalcRow(['7', '8', '9', '×'], onPressed),
+                    _buildCalcRow(['4', '5', '6', '-'], onPressed),
+                    _buildCalcRow(['1', '2', '3', '+'], onPressed),
+                    _buildCalcRow(['±', '0', '.', '='], onPressed),
+                    _buildCalcRow(['√'], onPressed),
+                  ].expand((row) => [row, const SizedBox(height: 6)]).toList()
+                    ..removeLast(),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ---- SCIENTIFIC CALCULATOR ----
+
+  Widget _buildScientificCalculator() {
+    return StatefulBuilder(
+      builder: (context, setCalcState) {
+        void onPressed(String value) => _handleCalcInput(value, setCalcState);
+
+        return Column(
+          children: [
+            _buildCalcDisplay(),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                child: Column(
+                  children: [
+                    // Scientific function rows
+                    _buildCalcRow(['sin', 'cos', 'tan', 'π'], onPressed, isTopRow: true, fontSize: 13),
+                    _buildCalcRow(['log', 'ln', 'EXP', 'e'], onPressed, fontSize: 13),
+                    _buildCalcRow(['x²', 'x³', 'xʸ', '√'], onPressed, fontSize: 13),
+                    _buildCalcRow(['n!', '1/x', '|x|', '%'], onPressed, fontSize: 13),
+                    // Standard rows
+                    _buildCalcRow(['C', '⌫', '±', '÷'], onPressed),
+                    _buildCalcRow(['7', '8', '9', '×'], onPressed),
+                    _buildCalcRow(['4', '5', '6', '-'], onPressed),
+                    _buildCalcRow(['1', '2', '3', '+'], onPressed),
+                    _buildCalcRow(['0', '.', '='], onPressed),
+                  ].expand((row) => [row, const SizedBox(height: 4)]).toList()
+                    ..removeLast(),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCalcRow(List<String> buttons, void Function(String) onPressed, {bool isTopRow = false, double? fontSize}) {
+    return Expanded(
+      child: Row(
+        children: buttons
+            .expand((btn) => [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: _buildCalcButton(btn, onPressed, isTopRow: isTopRow, fontSize: fontSize),
+                    ),
+                  ),
+                ])
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildCalcButton(String label, void Function(String) onPressed, {bool isTopRow = false, double? fontSize}) {
+    final isOperator = ['+', '-', '×', '÷', '='].contains(label);
+    final isScientific = ['sin', 'cos', 'tan', 'log', 'ln', 'EXP', 'x²', 'x³', 'xʸ', 'n!', '1/x', '|x|', 'π', 'e'].contains(label);
+    final isSpecial = ['C', '⌫', '%', '±', '√'].contains(label);
+
+    Color bgColor;
+    Color textColor;
+
+    if (label == '=') {
+      bgColor = AppColors.primary;
+      textColor = Colors.white;
+    } else if (isOperator) {
+      bgColor = AppColors.primary.withOpacity(0.1);
+      textColor = AppColors.primary;
+    } else if (isScientific) {
+      bgColor = const Color(0xFFE8EAF6);
+      textColor = const Color(0xFF3949AB);
+    } else if (isSpecial) {
+      bgColor = Colors.grey.shade200;
+      textColor = Colors.grey.shade700;
+    } else {
+      bgColor = const Color(0xFFF5F7FA);
+      textColor = AppColors.textPrimary;
+    }
+
+    final double effectiveFontSize = fontSize ?? (label == '⌫' ? 18 : 20);
+
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => onPressed(label),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: effectiveFontSize,
+              fontWeight: isOperator || label == '=' ? FontWeight.w600 : FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1153,7 +1526,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
           ElevatedButton.icon(
             onPressed: () {
               controller.clearData();
-              Get.offAllNamed(AppRoutes.home);
+              Get.offAllNamed(AppRoutes.discussion);
             },
             icon: const Icon(Icons.restart_alt_rounded, size: 18),
             label: const Text('Exit'),

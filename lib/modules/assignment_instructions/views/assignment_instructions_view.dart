@@ -20,7 +20,7 @@ class AssignmentInstructionsView
       onPopInvoked: (didPop) {
         if (didPop) return;
         if(startTest) {
-          Get.offAllNamed(AppRoutes.home);
+          Get.offAllNamed(AppRoutes.discussion);
         } else {
           Get.close(1);
         }
