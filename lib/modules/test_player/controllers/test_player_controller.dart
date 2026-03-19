@@ -524,6 +524,7 @@ class TestPlayerController extends GetxController {
 
   @override
   void onClose() {
+    unlockScreen();
     _timer?.cancel();
     _stopBlinking();
     super.onClose();
@@ -568,6 +569,7 @@ class TestPlayerController extends GetxController {
   }
 
   void _onTimeUp() {
+    unlockScreen();
     Get.snackbar(
       'Time Up',
       'Your test time has ended',
@@ -582,6 +584,7 @@ class TestPlayerController extends GetxController {
   }
 
   void submitTest() {
+    unlockScreen();
     _timer?.cancel();
     Get.snackbar(
       "Success",
@@ -950,12 +953,21 @@ class TestPlayerController extends GetxController {
       "numberOfReattempts" : totalReAttempts,
       "timestamp": DateTime.now().toIso8601String(),
     });
-    // Get.off(() => const TestResultView());
-    Get.off(() => const TestAnalysisView());
+    Get.snackbar(
+      'Success',
+      'Your exam has been submitted successfully, Your result will be published soon...',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF10B981),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+    );
+    Get.offAllNamed(AppRoutes.discussion);
   }
 
   /// Submit test results to server
   Future<void> submitTestResults() async {
+    unlockScreen();
+    _timer?.cancel();
     Get.dialog(
       const Center(
         child: CircularProgressIndicator(),
@@ -1556,8 +1568,6 @@ class TestPlayerController extends GetxController {
   //       ),
   //     );
   //   }
-
-
 
 
 }

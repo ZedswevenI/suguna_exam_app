@@ -38,14 +38,14 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       // App went to background — warn user
-      Get.snackbar(
-        '⚠️ Warning',
-        'Do not leave the exam screen!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: const Color(0xFFEF4444),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+      // Get.snackbar(
+      //   '⚠️ Warning',
+      //   'Do not leave the exam screen!',
+      //   snackPosition: SnackPosition.TOP,
+      //   backgroundColor: const Color(0xFFEF4444),
+      //   colorText: Colors.white,
+      //   duration: const Duration(seconds: 3),
+      // );
     }
   }
 

@@ -6,13 +6,16 @@ import 'package:suguna_exam_app/core/routes/app_routes.dart';
 import 'package:suguna_exam_app/core/routes/route_config.dart';
 import 'package:suguna_exam_app/core/services/service_locator.dart';
 import 'package:suguna_exam_app/core/theme/app_theme.dart';
-
 import 'data/services/sessions.dart';
 import 'data/services/store_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await TeXRenderingServer.start();
+  try {
+    await TeXRenderingServer.start();
+  } catch (e) {
+    debugPrint('TeXRenderingServer failed to start: $e');
+  }
   Get.put(StorageService(), permanent: true);
   Get.put(Session());
   // Initialize GetStorage

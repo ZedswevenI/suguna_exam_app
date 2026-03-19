@@ -22,7 +22,8 @@ class LoginController extends GetxController {
 
   @override
   void onReady() {
-    checkLogin();
+    // checkLogin();
+    Get.offAllNamed(AppRoutes.discussion);
     super.onReady();
   }
 

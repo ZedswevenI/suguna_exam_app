@@ -154,13 +154,14 @@ class _DownloadTestState extends State<DownloadTest>
   final _testIdCtrl   = TextEditingController();
   final _passcodeCtrl = TextEditingController();
 
+
   static const _labels = ['Most Recent', 'Six Months', 'One Year', 'Two Years','Three Years','Four Years'];
   static const _data   = [_mostRecent, _sixMonths, _oneYear, _twoYears,<TestItem>[],<TestItem>[]];
 
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 6, vsync: this, initialIndex: 0);
+    _tab = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: Duration.zero);
   }
 
   @override
@@ -198,6 +199,7 @@ class _DownloadTestState extends State<DownloadTest>
   Widget _gridView() {
     return TabBarView(
       controller: _tab,
+      physics: const NeverScrollableScrollPhysics(),
       children: List.generate(6, (i) => _TestGrid(items: _data[i])),
     );
   }
@@ -227,11 +229,11 @@ class _AppHeader extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.menu_rounded, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 4),
+                  // IconButton(
+                  //   icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                  //   onPressed: () {},
+                  // ),
+                  // const SizedBox(width: 4),
                   // Logo
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
