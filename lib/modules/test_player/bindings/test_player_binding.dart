@@ -4,7 +4,7 @@ import 'package:suguna_exam_app/modules/test_player/controllers/test_player_cont
 class TestPlayerBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => TestPlayerController(),fenix: true);
+    Get.lazyPut(() => TestPlayerController());
     // Get.put(TestPlayerController(),permanent: true);
   }
 }

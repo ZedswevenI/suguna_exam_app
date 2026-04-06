@@ -42,16 +42,16 @@ class TestPlayerController extends GetxController {
   }
 
   void _parseCalculatorType(Map<String, dynamic> json) {
-    // calculatorType = CalculatorType.scientific;
-    calculatorType = CalculatorType.scientific;
-    // final type = json['calculator_type']?.toString().toLowerCase();
-    // if (type == 'scientific') {
-    //   calculatorType = CalculatorType.scientific;
-    // } else if (type == 'basic') {
-    //   calculatorType = CalculatorType.basic;
-    // } else {
-    //   calculatorType = CalculatorType.none;
-    // }
+    final type = (json['calculatorType'] ?? json['calculator_type'] ?? '')
+        .toString()
+        .toLowerCase();
+    if (type == 'scientific') {
+      calculatorType = CalculatorType.scientific;
+    } else if (type == 'normal' || type == 'basic') {
+      calculatorType = CalculatorType.basic;
+    } else {
+      calculatorType = CalculatorType.none;
+    }
   }
 
   void updateView() => update(['palette']);
@@ -83,42 +83,51 @@ class TestPlayerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Load actual API data
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Load actual API data after the view is built
     initData();
   }
 
   Future<void> initData() async {
-    // final args = Get.arguments;
-
-    currentQuestionIndex.value = 0;
-    if (Session.instance.storedData != null) {
-      if (!Session.instance.isRetest) {
-        currentTestId = Session.instance.currentTestId;
-        final stored = Session.instance.storedData!['storedData'];
-        totalReAttempts = Session.instance.storedData!['storedData']['numberOfReattempts'] ?? 1;
-        categories = await TestApiParser.parseFromJsonString(
-          stored['testJson'],
-        );
-        selectedQuestions = stored['testJson'];
-        _parseCalculatorType(stored['testJson']);
-        final List answers = stored['result']['answers'] ?? [];
-        for (var item in answers) {
-          final questionNumber = item['questionNumber'];
-          final correctAnswer = item['correctAnswer'];
-          if (questionNumber != null && correctAnswer != null) {
-            correctAnswersMap['question_$questionNumber'] = correctAnswer;
+    try {
+      currentQuestionIndex.value = 0;
+      if (Session.instance.storedData != null) {
+        if (!Session.instance.isRetest) {
+          currentTestId = Session.instance.currentTestId;
+          final stored = Session.instance.storedData!['storedData'];
+          totalReAttempts = Session.instance.storedData!['storedData']['numberOfReattempts'] ?? 1;
+          categories = await TestApiParser.parseFromJsonString(
+            stored['testJson'],
+          );
+          selectedQuestions = stored['testJson'];
+          _parseCalculatorType(stored['testJson']);
+          final List answers = stored['result']['answers'] ?? [];
+          for (var item in answers) {
+            final questionNumber = item['questionNumber'];
+            final correctAnswer = item['correctAnswer'];
+            if (questionNumber != null && correctAnswer != null) {
+              correctAnswersMap['question_$questionNumber'] = correctAnswer;
+            }
           }
+          _restoreUserAnswers(stored['result']['answers']);
+          _extractSubjects();
+          _loadBookmarks();
+          update();
+        } else {
+          takeRetest();
+          startedAt = DateTime.now();
         }
-        _restoreUserAnswers(stored['result']['answers']);
-        _extractSubjects();
-        _loadBookmarks();
-        update();
       } else {
-        takeRetest();
-        startedAt = DateTime.now();
+        startTestAgain();
       }
-    } else {
-      startTestAgain();
+    } catch (e, s) {
+      print('initData error: $e');
+      print('Stack: $s');
+      isLoading = false;
     }
   }
 
@@ -182,21 +191,103 @@ class TestPlayerController extends GetxController {
     }
   }
 
+  bool get isExamMode => Session.instance.currentTestId.startsWith('exam_');
+
   void startTestAgain() {
     startedAt = DateTime.now();
-    final stored = storage.read(Session.instance.currentTestId);
+    currentTestId = Session.instance.currentTestId;
+    final rawStored = storage.read(currentTestId);
+    final stored = rawStored is Map ? Map<String, dynamic>.from(rawStored) : null;
     totalReAttempts = stored == null || stored['numberOfReattempts'] == null ? 1 :  stored['numberOfReattempts'] + 1;
-    // final args = Get.arguments;
+
+    if (isExamMode) {
+      _startExam();
+      return;
+    }
+
     try {
-      // currentTestId = args['testId'];
       selectedQuestions = TopicAssignmentsController.to.selectedQuestions ?? {};
       loadTestData(_getApiResponse());
       _startTimer();
     } catch (e) {
-      selectedQuestions = TopicAssignmentsController.to.selectedQuestions ?? {};
+      // Fallback: try to load from Get.arguments
+      final args = Get.arguments;
+      if (args != null && args['selectedQuestion'] != null) {
+        selectedQuestions = args['selectedQuestion'];
+      }
       loadTestData(_getApiResponse());
       _startTimer();
     }
+  }
+
+  void _startExam() {
+    try {
+      isLoading = true;
+      categories.clear();
+      currentTestId = Session.instance.currentTestId;
+
+      // Get exam data from arguments or storage
+      final args = Get.arguments;
+      Map<String, dynamic> examData;
+      if (args != null && args['selectedQuestion'] != null) {
+        examData = _deepConvertMap(args['selectedQuestion']);
+      } else {
+        final stored = storage.read(currentTestId);
+        examData = stored != null ? _deepConvertMap(stored) : {};
+      }
+
+      if (examData.isEmpty || examData['questions'] == null) {
+        print('ERROR: No exam data found for $currentTestId');
+        isLoading = false;
+        update();
+        return;
+      }
+
+      selectedQuestions = examData;
+
+      // Set exam duration (API gives minutes, convert to seconds)
+      final durationMinutes = examData['duration'] ?? 30;
+      totalDurationSeconds = durationMinutes * 60;
+      remainingSeconds.value = totalDurationSeconds;
+
+      final parsed = TestApiParser.parseExamResponse(examData);
+      if (parsed.isEmpty) {
+        print('ERROR: parseExamResponse returned empty categories');
+        isLoading = false;
+        update();
+        return;
+      }
+      categories.addAll(parsed);
+      _parseCalculatorType(examData);
+      _extractSubjects();
+      isLoading = false;
+      _startTimer();
+      update();
+    } catch (e, s) {
+      print('_startExam error: $e');
+      print('Stack: $s');
+      isLoading = false;
+      update();
+    }
+  }
+
+  Map<String, dynamic> _deepConvertMap(Map data) {
+    return data.map((key, value) {
+      if (value is Map) {
+        return MapEntry(key.toString(), _deepConvertMap(value));
+      } else if (value is List) {
+        return MapEntry(key.toString(), _deepConvertList(value));
+      }
+      return MapEntry(key.toString(), value);
+    });
+  }
+
+  List<dynamic> _deepConvertList(List data) {
+    return data.map((item) {
+      if (item is Map) return _deepConvertMap(item);
+      if (item is List) return _deepConvertList(item);
+      return item;
+    }).toList();
   }
 
   void takeRetest() async {
@@ -221,10 +312,15 @@ class TestPlayerController extends GetxController {
     isLoading = true;
     updateView();
     categories.clear();
-    final Map<String, dynamic> jsonData =
-        TopicAssignmentsController.to.selectedQuestions ?? {};
-    categories.addAll(await TestApiParser.parseFromJsonString(jsonData));
-    _parseCalculatorType(jsonData);
+    if (isExamMode) {
+      categories.addAll(TestApiParser.parseExamResponse(selectedQuestions));
+      _parseCalculatorType(selectedQuestions);
+    } else {
+      final Map<String, dynamic> jsonData =
+          TopicAssignmentsController.to.selectedQuestions ?? {};
+      categories.addAll(await TestApiParser.parseFromJsonString(jsonData));
+      _parseCalculatorType(jsonData);
+    }
     _extractSubjects();
     isLoading = false;
     updateView();
@@ -509,15 +605,15 @@ class TestPlayerController extends GetxController {
   }
 
   //Timers
-  static const int totalDurationSeconds = 30 * 60;
+  int totalDurationSeconds = 30 * 60;
   static const int warningThresholdSeconds = 5 * 60;
   static const int blinkThresholdSeconds = 60;
 
-  final enableBlinkingTimer = true; // 🔥 ONE BOOLEAN (toggle anytime)
+  final enableBlinkingTimer = true;
   final blinkOn = true.obs;
   Timer? _blinkTimer;
 
-  final remainingSeconds = totalDurationSeconds.obs;
+  final remainingSeconds = (30 * 60).obs;
   final showFiveMinWarning = false.obs;
 
   Timer? _timer;
@@ -943,8 +1039,83 @@ class TestPlayerController extends GetxController {
   }
 
   /// Complete test and show results
-  void finalCompleteTest() {
+  void finalCompleteTest() async {
     clearData();
+
+    if (isExamMode) {
+      // Submit exam to server
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+      try {
+        final examPayload = _prepareExamSubmission();
+        final connectivityResult = await NetworkService.hasInternet();
+
+        if (connectivityResult) {
+          final response = await _apiService.submitExamResult(examPayload);
+          if (response is! Exception && response['status'] == true) {
+            // Mark completed in storage and clear active exam
+            storage.save(Session.instance.currentTestId, {
+              "testJson": selectedQuestions,
+              "completed": true,
+              "timestamp": DateTime.now().toIso8601String(),
+            });
+            storage.removeByKey('active_exam_id');
+            Get.back(); // close loader
+            Get.snackbar(
+              'Success',
+              'Your exam has been submitted successfully, Your result will be published soon...',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: const Color(0xFF10B981),
+              colorText: Colors.white,
+              duration: const Duration(seconds: 3),
+            );
+            Get.offAllNamed(AppRoutes.discussion);
+            return;
+          } else {
+            Get.back(); // close loader
+            final msg = response is Exception
+                ? response.toString()
+                : (response['message'] ?? 'Submission failed');
+            Get.snackbar('Error', msg,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: const Color(0xFFEF4444),
+              colorText: Colors.white,
+            );
+          }
+        } else {
+          Get.back(); // close loader
+          // Save locally for later sync
+          storage.save(Session.instance.currentTestId, {
+            "testJson": selectedQuestions,
+            "examPayload": examPayload,
+            "completed": true,
+            "pendingSync": true,
+            "timestamp": DateTime.now().toIso8601String(),
+          });
+          Get.snackbar(
+            'Offline',
+            'Exam saved locally. It will be submitted when you are online.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFFD97706),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+          Get.offAllNamed(AppRoutes.discussion);
+        }
+      } catch (e) {
+        Get.back(); // close loader
+        Get.snackbar('Error', 'Failed to submit exam: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFEF4444),
+          colorText: Colors.white,
+        );
+      }
+      return;
+    }
+
+    // Assignment flow (existing)
     final Map<String, dynamic> results = _prepareResultsForSubmission();
     storage.save(Session.instance.currentTestId, {
       "testJson": selectedQuestions,
@@ -1041,6 +1212,47 @@ class TestPlayerController extends GetxController {
       );
       Get.back();
     }
+  }
+
+  /// Prepare exam results for /exam/result/submit
+  Map<String, dynamic> _prepareExamSubmission() {
+    final allQuestions = getAllQuestions();
+    final userData = Session.instance.currentUser?['data'] ?? {};
+
+    // Build answers with sectionId and timeTaken
+    final answers = allQuestions.map((q) {
+      return {
+        'questionId': q.questionId,
+        'sectionId': q.sectionId ?? '',
+        'answerRaw': _getUserAnswerForSubmission(q),
+        'isSkipped': isQuestionSkipped(q),
+        'timeTaken': (questionTimeSpent[q.number] ?? 0) * 1000, // seconds → ms
+      };
+    }).toList();
+
+    // Build sectionTimings from questionTimeSpent
+    final Map<String, int> sectionTimings = {};
+    for (var q in allQuestions) {
+      if (q.sectionId != null) {
+        final timeMs = (questionTimeSpent[q.number] ?? 0) * 1000; // seconds → ms
+        sectionTimings[q.sectionId!] =
+            (sectionTimings[q.sectionId!] ?? 0) + timeMs;
+      }
+    }
+
+    return {
+      'entiId': userData['tenantId'] ?? '',
+      'examId': Session.instance.currentTestId.replaceAll('exam_', ''),
+      'admissionNo': userData['admissionNo'] ?? '',
+      'studentId': userData['studentId'] ?? '',
+      'batchId': userData['batchCode'] ?? '',
+      'centerId': userData['centerId'] ?? '',
+      'classNo': userData['classNo'] ?? 0,
+      'startedAt': startedAt.millisecondsSinceEpoch,
+      'completedAt': DateTime.now().millisecondsSinceEpoch,
+      'sectionTimings': sectionTimings,
+      'answers': answers,
+    };
   }
 
   /// Prepare results data for API submission
@@ -1380,6 +1592,7 @@ class TestPlayerController extends GetxController {
     if (selectedSubjectFilter.value == 'All') return categories;
 
     return categories.map((cat) {
+
       final filtered = cat.questions
           .where((q) => q.subject?.name == selectedSubjectFilter.value)
           .toList();

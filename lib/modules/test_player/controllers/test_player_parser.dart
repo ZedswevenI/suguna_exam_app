@@ -73,6 +73,7 @@ class Question {
   final double? minRange;
   final double? maxRange;
   final String? questionHtml;
+  final String? sectionId;
 
   // ✅ Correct Answer Storage
   final String? correctAnswer;
@@ -99,6 +100,7 @@ class Question {
     this.minRange,
     this.maxRange,
     this.questionHtml,
+    this.sectionId,
     this.subject,
     this.correctAnswer,
     this.correctAnswers,
@@ -172,8 +174,7 @@ class TestApiParser {
   static Future<List<QuestionCategory>> parseFromJsonString(Map<String, dynamic> jsonString) async {
     try {
       final Map<String, dynamic> jsons =   await loadQuestionsJson();
-      // return parseApiResponse(jsonString);
-      return parseApiResponse(jsons);
+      return parseApiResponse(jsonString);
     } catch (e) {
       print('Error parsing JSON string: $e');
       return [];
@@ -340,6 +341,104 @@ class TestApiParser {
     }
   }
 
+  /// Parser for exam questions (flat questions array with subjectId object)
+  static List<QuestionCategory> parseExamResponse(
+      Map<String, dynamic> examData,
+      ) {
+    try {
+      final Map<String, dynamic> correctAnswersMap = {};
+      final List<dynamic> questionsJson =
+          examData['questions'] as List<dynamic>? ?? [];
+
+      // Group by question type for tab categories (same as assignments)
+      final Map<QuestionType, List<Question>> questionsByType = {};
+
+      for (int i = 0; i < questionsJson.length; i++) {
+        final qJson = Map<String, dynamic>.from(questionsJson[i] as Map);
+
+        // Parse subject from subjectId object (exam format)
+        Subject? subject;
+        final rawSubjectData = qJson['subjectId'];
+        final subjectData = rawSubjectData is Map ? Map<String, dynamic>.from(rawSubjectData) : rawSubjectData;
+        if (subjectData is Map<String, dynamic>) {
+          subject = Subject(
+            id: subjectData['_id']?.toString() ?? 'unknown',
+            name: subjectData['subjectName']?.toString() ?? 'General',
+          );
+        } else if (subjectData is String) {
+          subject = Subject(id: subjectData, name: 'General');
+        }
+
+        final correctAnswer = qJson['correctAnswer'];
+        final questionTypeFromApi =
+            qJson['questionType'] as String? ?? 'mcq_single';
+        final parsedType = _parseQuestionType(questionTypeFromApi);
+
+        final sectionId = qJson['sectionId']?.toString();
+
+        final question = Question(
+          questionId: qJson['questionId'] as String? ?? '',
+          number: i + 1,
+          subject: subject,
+          sectionId: sectionId,
+          positiveMarks: _parseToDouble(qJson['positiveMarks'], defaultValue: 4),
+          negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
+          text: qJson['questionText'] as String? ?? '',
+          questionHtml: _stripLatexSpans(qJson['questionHtml'] as String? ?? ''),
+          type: parsedType,
+          options: _parseOptions(
+            qJson['questionOptions'] as List<dynamic>? ?? [],
+          ),
+          minRange: _parseToNullableDouble(qJson['numericMin']),
+          maxRange: _parseToNullableDouble(qJson['numericMax']),
+          status: QuestionStatus.notVisited,
+        );
+
+        if (correctAnswer != null) {
+          correctAnswersMap['question_${i + 1}'] = correctAnswer;
+        }
+
+        questionsByType.putIfAbsent(parsedType, () => []).add(question);
+      }
+
+      final List<QuestionCategory> categories = [];
+      int categoryIndex = 0;
+
+      questionsByType.forEach((type, questions) {
+        categories.add(
+          QuestionCategory(
+            id: 'category_$categoryIndex',
+            name: _getCategoryNameFromType(type),
+            subject: questions.first.subject,
+            questionCount: questions.length,
+            questions: questions,
+          ),
+        );
+        categoryIndex++;
+      });
+
+      try {
+        final controller = Get.find<TestPlayerController>();
+        controller.correctAnswersMap = correctAnswersMap;
+      } catch (e) {
+        print('Controller not found: $e');
+      }
+
+      return categories;
+    } catch (e) {
+      print('Error parsing exam response: $e');
+      return [];
+    }
+  }
+
+  static double? _parseToNullableDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value.toDouble();
+    if (value is double) return value;
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
   static double _parseToDouble(dynamic value, {double defaultValue = 0}) {
     if (value == null) return defaultValue;
 
@@ -421,13 +520,29 @@ class TestApiParser {
   static List<String> _parseOptions(List<dynamic> optionsJson) {
     return optionsJson
         .map((opt) {
-      final optMap = opt as Map<String, dynamic>;
-      return optMap['textHtml'] as String? ??
+      final optMap = opt is Map ? Map<String, dynamic>.from(opt) : <String, dynamic>{};
+      final raw = optMap['textHtml'] as String? ??
           optMap['text'] as String? ??
           '';
+      return _stripLatexSpans(raw);
     })
         .where((text) => text.isNotEmpty)
         .toList();
+  }
+
+  /// Converts <span class="latex">$...$</span> to \(...\) for TeXView rendering
+  static String _stripLatexSpans(String html) {
+    // Step 1: Unwrap <span class="latex">...</span> tags
+    var result = html.replaceAllMapped(
+      RegExp(r'<span\s+class="latex">\s*(.*?)\s*</span>', dotAll: true),
+          (match) => match.group(1) ?? '',
+    );
+    // Step 2: Convert $...$ delimiters to \(...\) which TeXView supports
+    result = result.replaceAllMapped(
+      RegExp(r'\$(.+?)\$', dotAll: true),
+          (match) => '\\(${match.group(1)}\\)',
+    );
+    return result;
   }
 
   String normalizeQuestionHtml(String input) {

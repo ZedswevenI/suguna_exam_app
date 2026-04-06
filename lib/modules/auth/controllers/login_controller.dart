@@ -8,8 +8,7 @@ import '../../../core/services/service_locator.dart';
 import '../../../data/services/store_service.dart';
 
 class LoginController extends GetxController {
-  final usernameController = TextEditingController(text: '9063642600002');
-  // final usernameController = TextEditingController(text: '');
+  final usernameController = TextEditingController(text: '9020642590055');
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -22,8 +21,7 @@ class LoginController extends GetxController {
 
   @override
   void onReady() {
-    // checkLogin();
-    Get.offAllNamed(AppRoutes.discussion);
+    checkLogin();
     super.onReady();
   }
 
@@ -46,7 +44,7 @@ class LoginController extends GetxController {
       if(response['status']) {
         Session.instance.currentUser = response;
         _storage.saveUser(response);
-        Get.toNamed(AppRoutes.home,arguments: response);
+        Get.offAllNamed(AppRoutes.discussion, arguments: response);
       } else {
         Get.snackbar('Error', response['message']);
       }
@@ -60,11 +58,8 @@ class LoginController extends GetxController {
   void checkLogin() {
     if (_storage.isLoggedIn) {
       Session.instance.currentUser = _storage.getUser();
-      // Get.offAllNamed(AppRoutes.home,arguments: _storage.getUser());
       Get.offAllNamed(AppRoutes.discussion);
     } else {
-      Get.offAllNamed(AppRoutes.discussion);
-
       // Get.offAllNamed(AppRoutes.login);
     }
   }

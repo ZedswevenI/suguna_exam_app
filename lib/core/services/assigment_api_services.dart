@@ -141,4 +141,57 @@ class AssignmentApiServices extends ApiService {
   }
   // assignment/question/bookmark/create
 
+  Future<dynamic> getExamQuestions(String tenantId, String examId, String examCode, String password) async {
+    try {
+      final response = await post(
+        '/exam/questions/get-questions',
+        body: {
+          "tenantId": tenantId,
+          "examId": examId,
+          "examCode": examCode,
+          "password": password,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<dynamic> submitExamResult(Map<String, dynamic> body) async {
+    try {
+      final response = await post(
+        '/exam/result/submit',
+        body: body,
+      );
+      return response;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<dynamic> downloadExamQuestionImage(String url) async {
+    return await post(
+      '/exam/questions/image/download',
+      body: {
+        "url": url,
+      },
+    );
+  }
+
+  Future<dynamic> getExamList(String entiId, String batchId, String admissionNo) async {
+    try {
+      final response = await post(
+        '/exam/student-list',
+        body: {
+          "entiId": entiId,
+          "batchId": batchId,
+          "admissionNo": admissionNo,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
