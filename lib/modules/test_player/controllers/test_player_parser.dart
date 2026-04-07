@@ -291,6 +291,7 @@ class TestApiParser {
         final questionTypeFromApi =
             qJson['questionType'] as String? ?? 'mcq_single';
         final parsedType = _parseQuestionType(questionTypeFromApi);
+        final rawOptions = qJson['questionOptions'] as List<dynamic>? ?? [];
         final question = Question(
           questionId: qJson['questionId'] as String? ?? '',
           number: i + 1,
@@ -300,10 +301,10 @@ class TestApiParser {
           text: qJson['questionText'] as String? ?? '',
           questionHtml: qJson['questionHtml'] as String?,
           type: parsedType,
-          options: _parseOptions(
-            qJson['questionOptions'] as List<dynamic>? ?? [],
-          ),
-
+          options: _parseOptions(rawOptions),
+          matchPairs: parsedType == QuestionType.matchTheFollowing
+              ? _parseMatchPairs(rawOptions)
+              : null,
           status: QuestionStatus.notVisited,
         );
         if (correctAnswer != null) {
@@ -376,6 +377,7 @@ class TestApiParser {
 
         final sectionId = qJson['sectionId']?.toString();
 
+        final rawOptions = qJson['questionOptions'] as List<dynamic>? ?? [];
         final question = Question(
           questionId: qJson['questionId'] as String? ?? '',
           number: i + 1,
@@ -386,9 +388,10 @@ class TestApiParser {
           text: qJson['questionText'] as String? ?? '',
           questionHtml: _stripLatexSpans(qJson['questionHtml'] as String? ?? ''),
           type: parsedType,
-          options: _parseOptions(
-            qJson['questionOptions'] as List<dynamic>? ?? [],
-          ),
+          options: _parseOptions(rawOptions),
+          matchPairs: parsedType == QuestionType.matchTheFollowing
+              ? _parseMatchPairs(rawOptions)
+              : null,
           minRange: _parseToNullableDouble(qJson['numericMin']),
           maxRange: _parseToNullableDouble(qJson['numericMax']),
           status: QuestionStatus.notVisited,
@@ -490,11 +493,13 @@ class TestApiParser {
     switch (apiType.toLowerCase()) {
       case 'mcq_single':
         return QuestionType.mcqSingle;
+      case 'mcq_multi':
       case 'mcq_multiple':
         return QuestionType.mcqMultiple;
       case 'match_the_following':
       case 'maq':
       case 'matrix':
+      case 'matrix_match':
         return QuestionType.matchTheFollowing;
       case 'integer':
       case 'numerical':
@@ -528,6 +533,35 @@ class TestApiParser {
     })
         .where((text) => text.isNotEmpty)
         .toList();
+  }
+
+  /// Parse match pairs from questionOptions for matrix_match type.
+  /// Generates MatchPair objects from the options list.
+  /// Each option becomes a left item (labeled A, B, C, D, ...).
+  /// All labels form the shared right options pool for every left item.
+  static List<MatchPair>? _parseMatchPairs(List<dynamic> optionsJson) {
+    if (optionsJson.isEmpty) return null;
+
+    // Generate labels A, B, C, D, ... for each option
+    final List<String> labels = [];
+    for (int i = 0; i < optionsJson.length; i++) {
+      final optMap = optionsJson[i] is Map
+          ? Map<String, dynamic>.from(optionsJson[i] as Map)
+          : <String, dynamic>{};
+      // Use 'key' if available, otherwise generate label from index
+      final key = optMap['key'] as String? ?? '';
+      labels.add(key.isNotEmpty ? key : String.fromCharCode(65 + i));
+    }
+
+    if (labels.isEmpty) return null;
+
+    // Each label becomes a left item, and all labels are right options
+    return labels.map((label) {
+      return MatchPair(
+        left: label,
+        rightOptions: List<String>.from(labels),
+      );
+    }).toList();
   }
 
   /// Converts <span class="latex">$...$</span> to \(...\) for TeXView rendering

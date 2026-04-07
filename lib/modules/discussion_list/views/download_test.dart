@@ -93,7 +93,8 @@ const _legendItems = <({Color color, Color bgColor, IconData icon, String label}
 
 // ── Date formatter ────────────────────────────────────────────────────────────
 
-final _dateFmt = DateFormat('dd MMM yyyy');
+final _dateFmt = DateFormat('dd MMM yyyy');   // existing
+final _timeFmt = DateFormat('hh:mm a');        // add this
 
 // ── Tab time filter ──────────────────────────────────────────────────────────
 
@@ -413,22 +414,12 @@ class _ExamCard extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(Icons.calendar_month_rounded, size: 11, color: Color(0xFFADB5C7)),
+                              const Icon(Icons.calendar_month_rounded, size: 12, color: Color(0xFFADB5C7)),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  _dateFmt.format(exam.startDateTime),
+                                  '${_dateFmt.format(exam.startDateTime)}  •  ${_timeFmt.format(exam.startDateTime)} → ${_timeFmt.format(exam.endDateTime)}',
                                   style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const Icon(Icons.arrow_forward_rounded, size: 10, color: Color(0xFFCBD5E1)),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  _dateFmt.format(exam.endDateTime),
-                                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
-                                  textAlign: TextAlign.right,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),

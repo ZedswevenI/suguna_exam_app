@@ -23,6 +23,57 @@ class ExamResultView extends StatelessWidget {
             backgroundColor: const Color(0xFFF0F4F8),
             body: SafeArea(
               child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (controller.errorMessage.value.isNotEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 64, color: Color(0xFFEF4444)),
+                          const SizedBox(height: 16),
+                          Text(
+                            controller.errorMessage.value,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 16, color: Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 12,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Get.offAllNamed(AppRoutes.discussion);
+                                },
+                                icon: const Icon(Icons.home),
+                                label: const Text('Home'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4F46E5),
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: controller.retryLoadResult,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4F46E5),
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                }
                 if (controller.resultData.value == null) {
                   return const Center(child: CircularProgressIndicator());
                 }

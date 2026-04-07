@@ -160,6 +160,7 @@ class DiscussionListController extends GetxController {
         'startTime': data['startTime'],
         'endTime': data['endTime'],
         'calculatorType': data['calculatorType'],
+        'instructions': data['instructions'],
         'questions': processedQuestions,
         'sections': sections,
         'completed': false,
@@ -313,6 +314,19 @@ class DiscussionListController extends GetxController {
       return;
     }
 
+    // If already attempted, restrict download
+    if (exam.isAttempted) {
+      Get.snackbar(
+        'Already Attempted',
+        'You have already attempted this exam.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFD97706),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
     // Check if already cached
     final storageKey = 'exam_${exam.examId}';
     final cached = _storage.read(storageKey);
@@ -419,6 +433,8 @@ class DiscussionListController extends GetxController {
       return;
     }
 
+
+
     // Find exam by examCode matching testId
     final exam = exams.firstWhereOrNull(
       (e) => e.examCode == testId || e.examId == testId,
@@ -430,6 +446,33 @@ class DiscussionListController extends GetxController {
         'No exam found with ID: $testId',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFFDC2626),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Check if already attempted
+    if (exam.isAttempted) {
+      Get.snackbar(
+        'Already Attempted',
+        'You have already attempted this exam.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFD97706),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    // Check if already cached and completed
+    final storageKey = 'exam_${exam.examId}';
+    final cached = _storage.read(storageKey);
+    if (cached != null && cached['completed'] == true) {
+      Get.snackbar(
+        'Completed',
+        'You have already completed this exam.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF059669),
         colorText: Colors.white,
       );
       return;

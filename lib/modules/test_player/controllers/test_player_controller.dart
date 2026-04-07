@@ -1040,6 +1040,7 @@ class TestPlayerController extends GetxController {
 
   /// Complete test and show results
   void finalCompleteTest() async {
+
     clearData();
 
     if (isExamMode) {
@@ -1051,7 +1052,6 @@ class TestPlayerController extends GetxController {
       try {
         final examPayload = _prepareExamSubmission();
         final connectivityResult = await NetworkService.hasInternet();
-
         if (connectivityResult) {
           final response = await _apiService.submitExamResult(examPayload);
           if (response is! Exception && response['status'] == true) {
@@ -1223,13 +1223,12 @@ class TestPlayerController extends GetxController {
     final answers = allQuestions.map((q) {
       return {
         'questionId': q.questionId,
-        'sectionId': q.sectionId ?? '',
+        'sectionId': q.subject?.id ?? '',
         'answerRaw': _getUserAnswerForSubmission(q),
         'isSkipped': isQuestionSkipped(q),
         'timeTaken': (questionTimeSpent[q.number] ?? 0) * 1000, // seconds → ms
       };
     }).toList();
-
     // Build sectionTimings from questionTimeSpent
     final Map<String, int> sectionTimings = {};
     for (var q in allQuestions) {

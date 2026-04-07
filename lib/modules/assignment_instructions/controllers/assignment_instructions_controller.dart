@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import 'package:suguna_exam_app/data/services/mock_data_service.dart';
 import 'package:suguna_exam_app/core/routes/app_routes.dart';
 
 class AssignmentInstructionsController extends GetxController {
-  final instructions = ''.obs;
+  final instructionTitle = ''.obs;
+  final instructionContentHtml = ''.obs;
 
   @override
   void onInit() {
@@ -12,12 +12,21 @@ class AssignmentInstructionsController extends GetxController {
   }
 
   void loadInstructions() {
-    instructions.value = MockDataService.getAssignmentInstructions();
+    final args = Get.arguments;
+    if (args != null) {
+      final examData = args['selectedQuestion'] as Map<String, dynamic>?;
+      if (examData != null) {
+        final instr = examData['instructions'];
+        if (instr is Map) {
+          instructionTitle.value = (instr['title'] ?? '').toString();
+          instructionContentHtml.value = (instr['contentHtml'] ?? '').toString();
+        }
+      }
+    }
   }
 
   void onAccept() {
-    // Navigate to test player
-    Get.toNamed(AppRoutes.testPlayer,arguments: Get.arguments);
+    Get.toNamed(AppRoutes.testPlayer, arguments: Get.arguments);
   }
 
   void onDecline() {

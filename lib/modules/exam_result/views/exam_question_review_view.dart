@@ -35,15 +35,15 @@ class ExamQuestionReviewView extends StatelessWidget {
                         ),
                       );
                     }
-                    // Single TeXView rendering ALL questions as one HTML page
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TeXView(
                         key: ValueKey('section_${controller.selectedSectionIndex.value}'),
                         style: const TeXViewStyle(
-                          backgroundColor: Colors.transparent,
+                          backgroundColor: Colors.white,
                           padding: TeXViewPadding.all(0),
                         ),
+                        loadingWidgetBuilder: (_) => const Center(child: CircularProgressIndicator()),
                         child: TeXViewColumn(
                           children: [
                             ...questions.asMap().entries.map((entry) {
@@ -256,7 +256,8 @@ class ExamQuestionReviewView extends StatelessWidget {
         final label = key.toString();
         final optionHtml = option['textHtml'] ?? '';
         final isOptionCorrect = option['isCorrect'] == true;
-        final isSelected = userAnswer.toUpperCase() == label.toUpperCase();
+        final selectedLabels = userAnswer.toUpperCase().split(';').toSet();
+        final isSelected = selectedLabels.contains(label.toUpperCase());
         final isUserWrong = isSelected && !isOptionCorrect;
 
         String border, background;
