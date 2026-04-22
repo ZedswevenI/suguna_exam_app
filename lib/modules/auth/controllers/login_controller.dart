@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:suguna_exam_app/data/services/sessions.dart';
@@ -8,7 +9,7 @@ import '../../../core/services/service_locator.dart';
 import '../../../data/services/store_service.dart';
 
 class LoginController extends GetxController {
-  final usernameController = TextEditingController(text: '9020642590055');
+  final usernameController = TextEditingController(text: kDebugMode ?  '9020642590055' : "");
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 

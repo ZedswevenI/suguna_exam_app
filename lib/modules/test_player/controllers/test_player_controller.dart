@@ -1201,7 +1201,6 @@ class TestPlayerController extends GetxController {
       // Navigate back or to results page
       // Get.back();
     } catch (e,s) {
-      print("Came to e ${e} ${s}");
       Get.snackbar(
         'Error',
         'Failed to submit results. Please try again.',
