@@ -193,6 +193,18 @@ class TestPlayerController extends GetxController {
 
   bool get isExamMode => Session.instance.currentTestId.startsWith('exam_');
 
+  String get examCode {
+    if (isExamMode) {
+      return selectedQuestions['examCode']?.toString() ??
+          selectedQuestions['examName']?.toString() ??
+          "Exam";
+    } else {
+      return selectedQuestions['data']?['testNo']?.toString() ??
+          selectedQuestions['testNo']?.toString() ??
+          "Test";
+    }
+  }
+
   void startTestAgain() {
     startedAt = DateTime.now();
     currentTestId = Session.instance.currentTestId;
@@ -437,6 +449,7 @@ class TestPlayerController extends GetxController {
     currentCategoryIndex.value = categoryIndex;
     currentQuestionIndex.value = questionIndex;
     _syncNumericalField();
+    _syncSubjectFilter();
     updateView();
   }
 
@@ -541,6 +554,7 @@ class TestPlayerController extends GetxController {
       currentCategoryIndex.value--;
       currentQuestionIndex.value = currentCategory.questions.length - 1;
     }
+    _syncSubjectFilter();
     updateView();
   }
 
@@ -554,6 +568,7 @@ class TestPlayerController extends GetxController {
     }
     _startQuestionTimer();
     _syncNumericalField();
+    _syncSubjectFilter();
     updateView();
   }
 
@@ -573,6 +588,15 @@ class TestPlayerController extends GetxController {
       }
     } else {
       numericalController.clear();
+    }
+  }
+
+  void _syncSubjectFilter() {
+    final newSubject = currentQuestion.subject?.name;
+    if (newSubject != null &&
+        selectedSubjectFilter.value != 'All' &&
+        selectedSubjectFilter.value != newSubject) {
+      selectedSubjectFilter.value = newSubject;
     }
   }
 

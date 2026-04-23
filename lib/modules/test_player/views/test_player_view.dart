@@ -115,7 +115,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                 Icon(Icons.book_rounded, size: 18, color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
-                  "Test 123",
+                  controller.examCode,
                   // "${Session.instance.selectedSubject?.name} | ${Session.instance.selectedSubtopic?.name} | ${Session.instance.selectedSub}",
                   style: TextStyle(
                     fontSize: 14,

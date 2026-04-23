@@ -529,59 +529,63 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
   }
 
   // True/False
-  Widget _buildTrueFalse(Question question,  TestPlayerController controller
-      ) {
-    return Row(
-      children: question.options.map((option) {
-        final isTrue = option == 'True';
-        final isSelected = question.selectedAnswer == option;
-        return Expanded(
-          child: Container(
-            margin: EdgeInsets.only(right: isTrue ? 12 : 0),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => controller.selectAnswer(option),
-                borderRadius: BorderRadius.circular(12),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
+  Widget _buildTrueFalse(Question question, TestPlayerController controller) {
+    Widget buildOption(String option) {
+      final isTrue = option == 'True';
+      final isSelected = question.selectedAnswer == option;
+      return Expanded(
+        child: Container(
+          margin: EdgeInsets.only(right: isTrue ? 12 : 0),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => controller.selectAnswer(option),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? (isTrue ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                      : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
                     color: isSelected
                         ? (isTrue ? const Color(0xFF10B981) : const Color(0xFFEF4444))
-                        : Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? (isTrue ? const Color(0xFF10B981) : const Color(0xFFEF4444))
-                          : Colors.grey.shade300,
-                      width: 2,
+                        : Colors.grey.shade300,
+                    width: 2,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      isTrue ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                      size: 48,
+                      color: isSelected ? Colors.white : Colors.grey.shade400,
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        isTrue ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                        size: 48,
-                        color: isSelected ? Colors.white : Colors.grey.shade400,
+                    const SizedBox(height: 12),
+                    Obx(() => Text(
+                      option,
+                      style: TextStyle(
+                        fontSize: controller.getOptionFontSize() + 2,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 12),
-                      Obx(() => Text(
-                        option,
-                        style: TextStyle(
-                          fontSize: controller.getOptionFontSize() + 2,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : AppColors.textPrimary,
-                        ),
-                      )),
-                    ],
-                  ),
+                    )),
+                  ],
                 ),
               ),
             ),
           ),
-        );
-      }).toList(),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        buildOption('True'),
+        buildOption('False'),
+      ],
     );
   }
 

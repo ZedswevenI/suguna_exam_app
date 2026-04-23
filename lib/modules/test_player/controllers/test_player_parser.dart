@@ -503,6 +503,7 @@ class TestApiParser {
         return QuestionType.matchTheFollowing;
       case 'integer':
       case 'numerical':
+      case 'numeric':
         return QuestionType.numerical;
       case 'short_answer':
         return QuestionType.textType;
