@@ -103,16 +103,62 @@ class ExamResultController extends GetxController {
 
   Map<String, dynamic> get data => resultData.value ?? {};
 
-  int get obtainedMarks => data['obtainedMarks'] ?? 0;
-  int get totalMarks => data['totalMarks'] ?? 0;
-  int get rank => data['rank'] ?? 0;
-  num get percentile => data['percentile'] ?? 0;
-  int get timeTakenMs => data['timeTaken'] ?? 0;
+  int get obtainedMarks {
+    final v = (data['obtainedMarks'] as num?)?.toInt() ?? 0;
+    if (v != 0) return v;
+    // Fallback: sum marksAwarded from answers
+    double sum = 0;
+    for (var a in answers) {
+      sum += (a['marksAwarded'] as num?)?.toDouble() ?? 0;
+    }
+    return sum.round();
+  }
+
+  int get totalMarks {
+    final v = (data['totalMarks'] as num?)?.toInt() ?? 0;
+    if (v != 0) return v;
+    // Fallback: sum positiveMarks from answers
+    double sum = 0;
+    for (var a in answers) {
+      sum += (a['positiveMarks'] as num?)?.toDouble() ?? 0;
+    }
+    return sum.round();
+  }
+
+  int get rank => (data['rank'] as num?)?.toInt() ?? 0;
+  num get percentile => (data['percentile'] as num?) ?? 0;
+  int get timeTakenMs {
+    final v = (data['timeTaken'] as num?)?.toInt() ?? 0;
+    if (v != 0) return v;
+    // Fallback: sum timeTaken from answers
+    int sum = 0;
+    for (var a in answers) {
+      sum += (a['timeTaken'] as num?)?.toInt() ?? 0;
+    }
+    return sum;
+  }
 
   List<Map<String, dynamic>> get sectionResults {
-    final list = data['sectionResults'];
-    if (list == null) return [];
-    return List<Map<String, dynamic>>.from(list);
+    try {
+      final list = data['sectionResults'];
+      if (list != null && (list as List).isNotEmpty) {
+        final sections = list.map<Map<String, dynamic>>((e) =>
+            Map<String, dynamic>.from(e as Map)).toList();
+        // Check if any section has meaningful totalQuestions data
+        final hasMeaningfulData = sections.any((s) =>
+            ((s['totalQuestions'] as num?)?.toInt() ?? 0) > 0);
+        if (hasMeaningfulData) return sections;
+      }
+    } catch (e) {
+      print('⚠️ sectionResults parse error: $e');
+    }
+    // Fallback: compute from answers
+    final computed = _computeSectionResultsFromAnswers();
+    print('📊 sectionResults computed from answers: ${computed.length} sections');
+    for (var s in computed) {
+      print('  → ${s['sectionName']}: total=${s['totalQuestions']}, correct=${s['correctCount']}, wrong=${s['wrongCount']}, skipped=${s['skippedCount']}');
+    }
+    return computed;
   }
 
   List<Map<String, dynamic>> get answers {
@@ -121,15 +167,90 @@ class ExamResultController extends GetxController {
     return List<Map<String, dynamic>>.from(list);
   }
 
+  /// Computes section-level stats from the answers array when sectionResults is missing.
+  List<Map<String, dynamic>> _computeSectionResultsFromAnswers() {
+    // Build a sectionId → subjectId/name mapping from the backend's sectionResults
+    // (which may exist with subjectId objects even if totalQuestions = 0)
+    final Map<String, Map<String, dynamic>> sectionMeta = {};
+    final rawSections = data['sectionResults'];
+    if (rawSections is List) {
+      for (var s in rawSections) {
+        if (s is Map) {
+          final section = Map<String, dynamic>.from(s);
+          final subjectId = section['subjectId'];
+          String? sid;
+          if (subjectId is Map) {
+            sid = subjectId['_id']?.toString();
+          }
+          sid ??= section['sectionId']?.toString();
+          if (sid != null) {
+            sectionMeta[sid] = section;
+          }
+        }
+      }
+    }
+
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+    for (var a in answers) {
+      final sid = (a['sectionId'] ?? '').toString();
+      grouped.putIfAbsent(sid, () => []);
+      grouped[sid]!.add(a);
+    }
+
+    return grouped.entries.map((entry) {
+      final sectionId = entry.key;
+      final sectionAnswers = entry.value;
+
+      int correct = 0, wrong = 0, skipped = 0, answered = 0;
+      double obtainedMarks = 0, sectionTotalMarks = 0;
+      int timeTaken = 0;
+
+      for (var a in sectionAnswers) {
+        sectionTotalMarks += (a['positiveMarks'] as num?)?.toDouble() ?? 0;
+        timeTaken += (a['timeTaken'] as num?)?.toInt() ?? 0;
+
+        if (a['isSkipped'] == true) {
+          skipped++;
+        } else {
+          answered++;
+          if (a['isCorrect'] == true) {
+            correct++;
+          } else {
+            wrong++;
+          }
+          obtainedMarks += (a['marksAwarded'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      // Resolve section display name from backend metadata
+      final meta = sectionMeta[sectionId];
+      final subjectIdObj = meta?['subjectId'];
+
+      return {
+        'sectionId': sectionId,
+        'subjectId': subjectIdObj ?? sectionId,
+        'sectionName': _sectionDisplayName(meta ?? {'sectionId': sectionId}),
+        'totalQuestions': sectionAnswers.length,
+        'correctCount': correct,
+        'wrongCount': wrong,
+        'skippedCount': skipped,
+        'answeredCount': answered,
+        'obtainedMarks': obtainedMarks,
+        'totalMarks': sectionTotalMarks,
+        'timeTaken': timeTaken,
+      };
+    }).toList();
+  }
+
   // ── Statistics ─────────────────────────────────────────────────────────────
 
   Map<String, dynamic> getOverallStats() {
     int total = 0, correct = 0, wrong = 0, skipped = 0;
     for (var section in sectionResults) {
-      total += (section['totalQuestions'] as int?) ?? 0;
-      correct += (section['correctCount'] as int?) ?? 0;
-      wrong += (section['wrongCount'] as int?) ?? 0;
-      skipped += (section['skippedCount'] as int?) ?? 0;
+      total += (section['totalQuestions'] as num?)?.toInt() ?? 0;
+      correct += (section['correctCount'] as num?)?.toInt() ?? 0;
+      wrong += (section['wrongCount'] as num?)?.toInt() ?? 0;
+      skipped += (section['skippedCount'] as num?)?.toInt() ?? 0;
     }
     final percentage = total > 0 ? (correct / total * 100) : 0.0;
     return {
@@ -155,14 +276,14 @@ class ExamResultController extends GetxController {
   // Section-wise report for performance table
   List<Map<String, dynamic>> getSectionReport() {
     return sectionResults.map((section) {
-      final totalQ = (section['totalQuestions'] as int?) ?? 0;
-      final correct = (section['correctCount'] as int?) ?? 0;
-      final wrong = (section['wrongCount'] as int?) ?? 0;
-      final skipped = (section['skippedCount'] as int?) ?? 0;
+      final totalQ = (section['totalQuestions'] as num?)?.toInt() ?? 0;
+      final correct = (section['correctCount'] as num?)?.toInt() ?? 0;
+      final wrong = (section['wrongCount'] as num?)?.toInt() ?? 0;
+      final skipped = (section['skippedCount'] as num?)?.toInt() ?? 0;
       final obtained = (section['obtainedMarks'] as num?)?.toDouble() ?? 0.0;
       final sectionTotal = (section['totalMarks'] as num?)?.toDouble() ?? 0.0;
-      final timeTaken = (section['timeTaken'] as int?) ?? 0;
-      final answered = (section['answeredCount'] as int?) ?? 0;
+      final timeTaken = (section['timeTaken'] as num?)?.toInt() ?? 0;
+      final answered = (section['answeredCount'] as num?)?.toInt() ?? 0;
       final percentage = totalQ > 0 ? (correct / totalQ * 100) : 0.0;
       final accuracy = answered > 0 ? (correct / answered * 100) : 0.0;
       final avgTime = totalQ > 0 ? (timeTaken / totalQ) : 0.0;
@@ -350,7 +471,12 @@ class ExamResultController extends GetxController {
 
   String getSectionName(String sectionId) {
     for (var section in sectionResults) {
-      if (section['subjectId']?['_id'] == sectionId) {
+      final subjectId = section['subjectId'];
+      if (subjectId is Map && subjectId['_id'] == sectionId) {
+        return _sectionDisplayName(section);
+      } else if (subjectId is String && subjectId == sectionId) {
+        return section['sectionName']?.toString() ?? sectionId;
+      } else if (section['sectionId'] == sectionId) {
         return _sectionDisplayName(section);
       }
     }

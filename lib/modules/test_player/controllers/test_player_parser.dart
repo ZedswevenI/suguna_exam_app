@@ -40,9 +40,16 @@ enum QuestionType {
 
 class MatchPair {
   final String left;
+  final String leftText;
   final List<String> rightOptions;
+  final List<String> rightTexts;
 
-  MatchPair({required this.left, required this.rightOptions});
+  MatchPair({
+    required this.left,
+    this.leftText = '',
+    required this.rightOptions,
+    this.rightTexts = const [],
+  });
 }
 
 class QuestionCategory {
@@ -84,7 +91,7 @@ class Question {
   // ✅ User Answers
   String? selectedAnswer;
   List<String>? selectedAnswers;
-  Map<String, String>? matchAnswers;
+  Map<String, List<String>>? matchAnswers;
   double? numericalAnswer;
   String? textAnswer;
 
@@ -303,7 +310,7 @@ class TestApiParser {
           type: parsedType,
           options: _parseOptions(rawOptions),
           matchPairs: parsedType == QuestionType.matchTheFollowing
-              ? _parseMatchPairs(rawOptions)
+              ? _parseMatchPairsFromColumns(qJson)
               : null,
           status: QuestionStatus.notVisited,
         );
@@ -390,7 +397,7 @@ class TestApiParser {
           type: parsedType,
           options: _parseOptions(rawOptions),
           matchPairs: parsedType == QuestionType.matchTheFollowing
-              ? _parseMatchPairs(rawOptions)
+              ? _parseMatchPairsFromColumns(qJson)
               : null,
           minRange: _parseToNullableDouble(qJson['numericMin']),
           maxRange: _parseToNullableDouble(qJson['numericMax']),
@@ -536,33 +543,43 @@ class TestApiParser {
         .toList();
   }
 
-  /// Parse match pairs from questionOptions for matrix_match type.
-  /// Generates MatchPair objects from the options list.
-  /// Each option becomes a left item (labeled A, B, C, D, ...).
-  /// All labels form the shared right options pool for every left item.
-  static List<MatchPair>? _parseMatchPairs(List<dynamic> optionsJson) {
-    if (optionsJson.isEmpty) return null;
+  /// Parse match pairs from leftColumn / rightColumn for matrix type questions.
+  /// Each left item gets all right column values as rightOptions.
+  static List<MatchPair>? _parseMatchPairsFromColumns(Map<String, dynamic> qJson) {
+    final leftCol = qJson['leftColumn'] as List<dynamic>? ?? [];
+    final rightCol = qJson['rightColumn'] as List<dynamic>? ?? [];
 
-    // Generate labels A, B, C, D, ... for each option
-    final List<String> labels = [];
-    for (int i = 0; i < optionsJson.length; i++) {
-      final optMap = optionsJson[i] is Map
-          ? Map<String, dynamic>.from(optionsJson[i] as Map)
+    if (leftCol.isEmpty && rightCol.isEmpty) return null;
+
+    // Collect right column labels and texts
+    final List<String> rightLabels = [];
+    final List<String> rightTexts = [];
+    for (int i = 0; i < rightCol.length; i++) {
+      final rMap = rightCol[i] is Map
+          ? Map<String, dynamic>.from(rightCol[i] as Map)
           : <String, dynamic>{};
-      // Use 'key' if available, otherwise generate label from index
-      final key = optMap['key'] as String? ?? '';
-      labels.add(key.isNotEmpty ? key : String.fromCharCode(65 + i));
+      final key = rMap['key'] as String? ?? '';
+      rightLabels.add(key.isNotEmpty ? key : String.fromCharCode(80 + i)); // P, Q, R, S, T
+      rightTexts.add(_stripLatexSpans(rMap['text'] as String? ?? ''));
     }
 
-    if (labels.isEmpty) return null;
-
-    // Each label becomes a left item, and all labels are right options
-    return labels.map((label) {
-      return MatchPair(
+    // Build a MatchPair for each left column item
+    final List<MatchPair> pairs = [];
+    for (int i = 0; i < leftCol.length; i++) {
+      final lMap = leftCol[i] is Map
+          ? Map<String, dynamic>.from(leftCol[i] as Map)
+          : <String, dynamic>{};
+      final key = lMap['key'] as String? ?? '';
+      final label = key.isNotEmpty ? key : String.fromCharCode(65 + i); // A, B, C, D
+      pairs.add(MatchPair(
         left: label,
-        rightOptions: List<String>.from(labels),
-      );
-    }).toList();
+        leftText: _stripLatexSpans(lMap['text'] as String? ?? ''),
+        rightOptions: List<String>.from(rightLabels),
+        rightTexts: List<String>.from(rightTexts),
+      ));
+    }
+
+    return pairs.isNotEmpty ? pairs : null;
   }
 
   /// Converts <span class="latex">$...$</span> to \(...\) for TeXView rendering

@@ -173,22 +173,22 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
             );
           }),
           const SizedBox(width: 16),
-          OutlinedButton.icon(
-            onPressed: () {
-              _showRetestConfirmation(controller);
-            },
-            icon: const Icon(Icons.exit_to_app_rounded, size: 18),
-            label: const Text('Exit'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFEF4444),
-              side: const BorderSide(color: Color(0xFFEF4444)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
+          // OutlinedButton.icon(
+          //   onPressed: () {
+          //     _showRetestConfirmation(controller);
+          //   },
+          //   icon: const Icon(Icons.exit_to_app_rounded, size: 18),
+          //   label: const Text('Exit'),
+          //   style: OutlinedButton.styleFrom(
+          //     foregroundColor: const Color(0xFFEF4444),
+          //     side: const BorderSide(color: Color(0xFFEF4444)),
+          //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(width: 12),
           ElevatedButton.icon(
             onPressed: controller.completeTest,
             icon: const Icon(Icons.check_circle_outline_rounded, size: 20),

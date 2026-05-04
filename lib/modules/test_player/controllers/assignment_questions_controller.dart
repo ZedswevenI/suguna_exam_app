@@ -121,11 +121,11 @@ class AssignmentQuestionsController extends GetxController {
           break;
 
         case QuestionType.matchTheFollowing:
-          final map = <String, String>{};
+          final map = <String, List<String>>{};
           for (var pair in userAnswer.split(';')) {
             final parts = pair.split(':');
             if (parts.length == 2) {
-              map[parts[0]] = parts[1];
+              map[parts[0]] = parts[1].split('').toList();
             }
           }
           question.matchAnswers = map;
@@ -184,16 +184,17 @@ class AssignmentQuestionsController extends GetxController {
             correctAnswer.toLowerCase().trim();
 
       case QuestionType.matchTheFollowing:
-      // For matching, compare all pairs
+      // For matching, compare all pairs (format: A:PS;B:QR)
         if (question.matchAnswers == null) return false;
-        // Parse expected format: "A:1;B:2;C:3"
         final expectedPairs = correctAnswer.split(';');
         for (var pair in expectedPairs) {
           final parts = pair.split(':');
           if (parts.length != 2) continue;
           final left = parts[0].trim();
-          final right = parts[1].trim();
-          if (question.matchAnswers![left] != right) return false;
+          final expectedRight = parts[1].trim().split('')..sort();
+          final userRight = question.matchAnswers![left] ?? [];
+          final userSorted = List<String>.from(userRight)..sort();
+          if (expectedRight.join() != userSorted.join()) return false;
         }
         return true;
 
@@ -260,7 +261,7 @@ class AssignmentQuestionsController extends GetxController {
           return 'Not Answered';
         }
         return question.matchAnswers!.entries
-            .map((e) => '${e.key} → ${e.value}')
+            .map((e) => '${e.key} → ${e.value.join('')}')
             .join(', ');
     }
   }

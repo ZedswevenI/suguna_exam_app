@@ -925,6 +925,8 @@ class ExamResultView extends StatelessWidget {
                       _buildLegendItem('Correct', const Color(0xFF4CAF50)),
                       const SizedBox(width: 20),
                       _buildLegendItem('Wrong', const Color(0xFFE53935)),
+                      const SizedBox(width: 20),
+                      _buildLegendItem('Skipped', const Color(0xFFFFA726)),
                     ],
                   ),
                 ],
@@ -1105,6 +1107,10 @@ class ExamResultView extends StatelessWidget {
                   child: Text('You Marked',
                       style: TextStyle(color: Colors.white))),
               Expanded(
+                  flex: 1,
+                  child: Text('Time',
+                      style: TextStyle(color: Colors.white))),
+              Expanded(
                   flex: 2,
                   child: Text('Marks',
                       style: TextStyle(color: Colors.white))),
@@ -1126,6 +1132,8 @@ class ExamResultView extends StatelessWidget {
           final questionType = answer['questionType'] ?? '';
           final sectionName =
               controller.getSectionName(answer['sectionId'] ?? '');
+          final timeTakenMs = (answer['timeTaken'] as num?)?.toInt() ?? 0;
+          final timeTakenSec = timeTakenMs ~/ 1000;
 
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -1173,6 +1181,18 @@ class ExamResultView extends StatelessWidget {
                     style: const TextStyle(
                       color: Color(0xFF00D4FF),
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    timeTakenSec >= 60
+                        ? '${timeTakenSec ~/ 60}m ${timeTakenSec % 60}s'
+                        : '${timeTakenSec}s',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -1252,52 +1272,52 @@ class _SectionDonutPainter extends CustomPainter {
       ..strokeWidth = strokeWidth;
     canvas.drawArc(rect, 0, 2 * math.pi, false, bgPaint);
 
-    double startAngle = -math.pi / 2;
-
-    final colors = [
-      const Color(0xFF4CAF50),
-      const Color(0xFF2196F3),
-      const Color(0xFFFF9800),
-      const Color(0xFF9C27B0),
-      const Color(0xFF009688),
-    ];
-
-    int totalQ = 0;
+    // Aggregate totals across all sections
+    int totalCorrect = 0, totalWrong = 0, totalSkipped = 0;
     for (var s in sections) {
-      totalQ += (s['totalQuestions'] as int?) ?? 0;
+      totalCorrect += (s['correct'] as num?)?.toInt() ?? 0;
+      totalWrong += (s['wrong'] as num?)?.toInt() ?? 0;
+      totalSkipped += (s['skipped'] as num?)?.toInt() ?? 0;
     }
+
+    final totalQ = totalCorrect + totalWrong + totalSkipped;
     if (totalQ == 0) return;
 
-    for (int i = 0; i < sections.length; i++) {
-      final section = sections[i];
-      final correct = (section['correct'] as int?) ?? 0;
-      final wrong = (section['wrong'] as int?) ?? 0;
-      final sectionTotal = correct + wrong + ((section['skipped'] as int?) ?? 0);
+    double startAngle = -math.pi / 2;
 
-      if (sectionTotal == 0) continue;
-
-      final sectionAngle = (sectionTotal / totalQ) * 2 * math.pi;
-      final correctAngle = (correct / totalQ) * 2 * math.pi;
-      final wrongAngle = (wrong / totalQ) * 2 * math.pi;
-
-      // Correct arc
-      final correctPaint = Paint()
-        ..color = colors[i % colors.length]
+    // Correct arc (green)
+    if (totalCorrect > 0) {
+      final angle = (totalCorrect / totalQ) * 2 * math.pi;
+      final paint = Paint()
+        ..color = const Color(0xFF4CAF50)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.butt;
-      canvas.drawArc(rect, startAngle, correctAngle, false, correctPaint);
+      canvas.drawArc(rect, startAngle, angle, false, paint);
+      startAngle += angle;
+    }
 
-      // Wrong arc
-      final wrongPaint = Paint()
+    // Wrong arc (red)
+    if (totalWrong > 0) {
+      final angle = (totalWrong / totalQ) * 2 * math.pi;
+      final paint = Paint()
         ..color = const Color(0xFFE53935)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.butt;
-      canvas.drawArc(
-          rect, startAngle + correctAngle, wrongAngle, false, wrongPaint);
+      canvas.drawArc(rect, startAngle, angle, false, paint);
+      startAngle += angle;
+    }
 
-      startAngle += sectionAngle;
+    // Skipped arc (amber)
+    if (totalSkipped > 0) {
+      final angle = (totalSkipped / totalQ) * 2 * math.pi;
+      final paint = Paint()
+        ..color = const Color(0xFFFFA726)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.butt;
+      canvas.drawArc(rect, startAngle, angle, false, paint);
     }
   }
 

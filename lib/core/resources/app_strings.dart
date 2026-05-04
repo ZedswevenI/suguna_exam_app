@@ -1,6 +1,6 @@
 class AppStrings {
   // App Info
-  static const String appName = 'Exam App';
+  static const String appName = 'Z Exam';
 
 
   // Home

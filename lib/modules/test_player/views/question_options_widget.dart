@@ -339,113 +339,118 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
       Question question,
       TestPlayerController controller,
       ) {
-    // Matrix match: questionHtml contains the full matrix table with LaTeX.
-    // Left items: A, B, C, D  |  Right items: P, Q, R, S, T
-    final leftLabels = ['A', 'B', 'C', 'D'];
-    final rightLabels = ['P', 'Q', 'R', 'S', 'T'];
+    final pairs = question.matchPairs;
+    if (pairs == null || pairs.isEmpty) {
+      return const Text('No match data available for this question.');
+    }
 
-    return Wrap(
-      spacing: 16,
-      runSpacing: 12,
-      children: [
-        // Render question HTML (contains the matrix table with LaTeX)
-        TeXView(
-          style: const TeXViewStyle(
-            backgroundColor: Colors.transparent,
-            padding: TeXViewPadding.all(0),
-          ),
+    final rightOptions = pairs.first.rightOptions;
+    final rightTexts = pairs.first.rightTexts;
+
+    // Build all children for TeXViewColumn
+    final List<TeXViewWidget> children = [];
+
+    // 1. Question HTML (contains LaTeX)
+    children.add(TeXViewDocument(
+      question.questionHtml ?? '',
+      style: TeXViewStyle.fromCSS(
+        'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
+      ),
+    ));
+
+    // 2. Instruction
+    children.add(TeXViewDocument(
+      '''
+      <div style="
+        padding:10px; margin-bottom:12px;
+        background-color:rgba(79,70,229,0.1); border-radius:8px;
+        font-size:13px; font-weight:600; color:#4F46E5;
+      ">↔ Match each item on left to right</div>
+      ''',
+    ));
+
+    // 3. For each left item: label row + right option chips
+    for (final pair in pairs) {
+      final selectedRights = question.matchAnswers?[pair.left];
+
+      // Left label + text
+      final leftTextHtml = pair.leftText.isNotEmpty
+          ? '<span style="margin-left:10px; font-size:${controller.getOptionFontSize() - 1}px; font-weight:500; color:#1f2937;">${pair.leftText}</span>'
+          : '';
+
+      children.add(TeXViewDocument(
+        '''
+        <div style="
+          padding:8px 12px; margin-top:8px;
+          background-color:#f3f4f6; border-radius:8px 8px 0 0;
+          border:1px solid #d1d5db; border-bottom:none;
+          display:flex; align-items:center;
+        ">
+          <span style="
+            display:inline-block; padding:4px 12px;
+            background-color:rgba(79,70,229,0.15); border-radius:8px;
+            font-size:${controller.getOptionFontSize()}px;
+            font-weight:700; color:#4F46E5;
+          ">${pair.left}</span>
+          $leftTextHtml
+        </div>
+        ''',
+      ));
+
+      // Right option chips — each is its own TeXViewInkWell
+      for (int idx = 0; idx < rightOptions.length; idx++) {
+        final rightLabel = rightOptions[idx];
+        final rightText = idx < rightTexts.length ? rightTexts[idx] : '';
+        final isSelected = selectedRights?.contains(rightLabel) ?? false;
+        final bgColor = isSelected ? '#4F46E5' : '#f9fafb';
+        final textColor = isSelected ? '#ffffff' : '#1f2937';
+        final borderColor = isSelected ? '#4F46E5' : '#d1d5db';
+        final isLast = idx == rightOptions.length - 1;
+        final displayText = rightText.isNotEmpty
+            ? '$rightLabel : $rightText'
+            : rightLabel;
+
+        children.add(TeXViewInkWell(
+          id: 'match_${pair.left}_$rightLabel',
+          onTap: (id) {
+            final parts = id.split('_');
+            if (parts.length >= 3) {
+              controller.selectMatch(parts[1], parts[2]);
+            }
+          },
           child: TeXViewDocument(
-            question.questionHtml ?? '',
-            style: TeXViewStyle.fromCSS(
-              'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-            ),
+            '''
+            <div style="
+              padding:10px 14px;
+              background-color:$bgColor;
+              border-left:1px solid #d1d5db;
+              border-right:1px solid #d1d5db;
+              border-bottom:1px solid $borderColor;
+              ${isLast ? 'border-radius:0 0 8px 8px; margin-bottom:4px;' : ''}
+              cursor:pointer;
+              display:flex; align-items:center; gap:10px;
+            ">
+              <span style="
+                display:inline-flex; align-items:center; justify-content:center;
+                width:26px; height:26px; border-radius:50%;
+                background-color:${isSelected ? '#ffffff33' : '#e5e7eb'};
+                color:$textColor; font-size:12px; font-weight:700;
+                flex-shrink:0;
+              ">$rightLabel</span>
+              ${rightText.isNotEmpty ? '<span style="font-size:${controller.getOptionFontSize() - 1}px; font-weight:${isSelected ? '600' : '500'}; color:$textColor;">$rightText</span>' : ''}
+            </div>
+            ''',
           ),
-        ),
+        ));
+      }
+    }
 
-        // Instruction
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: const [
-              Icon(Icons.compare_arrows_rounded,
-                  color: AppColors.primary, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Match each item on left to right',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Matching rows: for each A, B, C, D show P, Q, R, S, T chips
-        ...leftLabels.map((left) {
-          final selectedRight = question.matchAnswers?[left];
-
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left label badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    left,
-                    style: TextStyle(
-                      fontSize: controller.getOptionFontSize(),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Right choices (P, Q, R, S, T)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: rightLabels.map((right) {
-                    final isSelected = selectedRight == right;
-                    return ChoiceChip(
-                      label: Text(
-                        right,
-                        style: TextStyle(
-                          fontSize: controller.getOptionFontSize() - 1,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : AppColors.textPrimary,
-                        ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: Colors.grey.shade200,
-                      onSelected: (_) {
-                        controller.selectMatch(left, right);
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
+    return TeXView(
+      style: const TeXViewStyle(
+        backgroundColor: Colors.transparent,
+        padding: TeXViewPadding.all(0),
+      ),
+      child: TeXViewColumn(children: children),
     );
   }
 
@@ -531,7 +536,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
   // True/False
   Widget _buildTrueFalse(Question question, TestPlayerController controller) {
     Widget buildOption(String option) {
-      final isTrue = option == 'True';
+      final isTrue = option.toLowerCase() == 'true';
       final isSelected = question.selectedAnswer == option;
       return Expanded(
         child: Container(
