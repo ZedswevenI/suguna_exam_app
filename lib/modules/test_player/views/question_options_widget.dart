@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tex/flutter_tex.dart';
 import 'package:get/get.dart';
 import 'package:suguna_exam_app/modules/test_player/controllers/test_player_controller.dart';
@@ -507,6 +508,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
             return TextField(
               controller: controller.numericalController,  // 👈 important
               keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [_SingleDecimalFormatter()],
               decoration: InputDecoration(
                 hintText: 'Enter your answer',
                 border: OutlineInputBorder(
@@ -927,4 +929,13 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
 
 
 
+}
+
+class _SingleDecimalFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+    if ('.'.allMatches(text).length > 1) return oldValue;
+    return newValue;
+  }
 }
