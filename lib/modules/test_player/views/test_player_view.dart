@@ -184,7 +184,8 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
           //     side: const BorderSide(color: Color(0xFFEF4444)),
           //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(12),
+          //       borderRadius: BorderRadius.circula
+          //      r(12),
           //     ),
           //   ),
           // ),
@@ -194,7 +195,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
             icon: const Icon(Icons.check_circle_outline_rounded, size: 20),
             label: const Text('Submit Test'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.scoreDarkGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -589,8 +590,8 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                   icon: const Icon(Icons.clear_rounded, size: 16),
                   label: const Text('Clear', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFEF4444),
-                    side: const BorderSide(color: Color(0xFFEF4444)),
+                    foregroundColor:  Colors.black,
+                    side: const BorderSide(color:  Colors.black),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 10,
@@ -633,7 +634,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                   ),
                   // icon: const Icon(Icons.bookmark_border_rounded, size: 16),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF59E0B),
+                    backgroundColor: const Color(0xFF286090),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -654,7 +655,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                   ),
                   icon: const Icon(Icons.arrow_forward_rounded, size: 16),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.scoreDarkGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(

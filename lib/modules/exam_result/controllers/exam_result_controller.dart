@@ -262,6 +262,7 @@ class ExamResultController extends GetxController {
     };
   }
 
+
   /// Extracts the display name for a section from the new API shape.
   /// `subjectId` is now an object: { "_id": "...", "subjectName": "BOTANY" }
   String _sectionDisplayName(Map<String, dynamic> section) {

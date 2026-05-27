@@ -106,17 +106,14 @@ class QuestionOptionsWidget extends StatelessWidget {
           width:24px;
           height:24px;
           border-radius:50%;
-          display:flex;
-          align-items:center;
-          justify-content:center;
           font-size:10px;
           font-weight:700;
+          text-align:center;
+          line-height:24px;
           color:${isSelected ? '#ffffff' : '#374151'};
           background-color:${isSelected ? '#2563eb' : '#d1d5db'};
           flex-shrink:0;
-        ">
-          $label
-        </div>
+        ">$label</div>
 
         <!-- OPTION TEXT -->
         <div style="
@@ -160,37 +157,35 @@ class QuestionOptionsWidget extends StatelessWidget {
 
   // MCQ - Multiple Answer
   Widget _buildMCQMultiple(Question question, TestPlayerController controller) {
-    return controller.isLatex(question.questionHtml ?? "")
-        ? TeXView(
-            style: const TeXViewStyle(
-              backgroundColor: Colors.transparent,
-              padding: TeXViewPadding.all(0),
+    return TeXView(
+      style: const TeXViewStyle(
+        backgroundColor: Colors.transparent,
+        padding: TeXViewPadding.all(0),
+      ),
+      child: TeXViewColumn(
+        children: [
+          TeXViewDocument(
+            question.questionHtml ?? "",
+            style: TeXViewStyle.fromCSS(
+              'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
             ),
-            child: TeXViewColumn(
-              children: [
-                TeXViewDocument(
-                  question.questionHtml ?? "",
-                  style: TeXViewStyle.fromCSS(
-                    'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-                  ),
-                ),
-                ...question.options.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final option = entry.value;
-                  final label = String.fromCharCode(65 + index); // A, B, C, D
-                  final isSelected =
-                      question.selectedAnswers?.contains(label) ?? false;
+          ),
+          ...question.options.asMap().entries.map((entry) {
+            final index = entry.key;
+            final option = entry.value;
+            final label = String.fromCharCode(65 + index); // A, B, C, D
+            final isSelected = question.selectedAnswers?.contains(label) ?? false;
 
-                  return TeXViewInkWell(
-                    id: 'multi_$index',
-                    onTap: (_) => controller.selectAnswer(label),
-                    child: TeXViewDocument(
-                      '''
+            return TeXViewInkWell(
+              id: 'multi_$index',
+              onTap: (_) => controller.selectAnswer(label),
+              child: TeXViewDocument(
+                '''
 <div style="display:flex; align-items:flex-start; gap:12px;">
   <div style="
     width:24px; height:24px; border-radius:6px;
-    display:flex; align-items:center; justify-content:center;
     font-size:10px; font-weight:700; flex-shrink:0;
+    text-align:center; line-height:24px;
     color:${isSelected ? '#ffffff' : '#374151'};
     background-color:${isSelected ? '#2563eb' : '#d1d5db'};
   ">$label</div>
@@ -200,138 +195,17 @@ class QuestionOptionsWidget extends StatelessWidget {
   <div style="font-size:18px;">${isSelected ? '☑' : '☐'}</div>
 </div>
 ''',
-                      style: TeXViewStyle.fromCSS(
-                        '''
+                style: TeXViewStyle.fromCSS(
+                  '''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
 border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
 background-color:${isSelected ? '#eff6ff' : 'transparent'};
 ''',
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          )
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: const Color(0xFFF59E0B).withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info_outline,
-                        color: Color(0xFFF59E0B), size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Select all correct answers',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFF59E0B),
-                      ),
-                    ),
-                  ],
                 ),
               ),
-              ...question.options.asMap().entries.map((entry) {
-                final index = entry.key;
-                final option = entry.value;
-                final label = String.fromCharCode(65 + index);
-                return _buildMultiOption(
-                  controller: controller,
-                  label: label,
-                  text: option,
-                  isSelected:
-                      question.selectedAnswers?.contains(label) ?? false,
-                  onTap: () => controller.selectAnswer(label),
-                );
-              }),
-            ],
-          );
-  }
-
-  Widget _buildMultiOption({
-    required String label,
-    required String text,
-    required bool isSelected,
-    required VoidCallback onTap,
-   required TestPlayerController controller
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary.withOpacity(0.08)
-                  : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? Colors.white : Colors.grey.shade700,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Obx(() => Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: controller.getOptionFontSize(),
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  )),
-                ),
-                if (isSelected)
-                  Icon(
-                    Icons.check_box_rounded,
-                    color: AppColors.primary,
-                    size: 24,
-                  )
-                else
-                  Icon(
-                    Icons.check_box_outline_blank_rounded,
-                    color: Colors.grey.shade400,
-                    size: 24,
-                  ),
-              ],
-            ),
-          ),
-        ),
+            );
+          }),
+        ],
       ),
     );
   }
