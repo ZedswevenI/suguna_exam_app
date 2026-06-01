@@ -223,7 +223,7 @@ class ExamQuestionReviewView extends StatelessWidget {
       statusText = 'Your answer is correct, You Scored ${marksAwarded.toStringAsFixed(0)}';
       statusColor = '#10B981';
     } else {
-      statusText = 'Your answer is incorrect, You Scored -$negativeMarks';
+      statusText = 'Your answer is incorrect, You Scored ${marksAwarded.toStringAsFixed(0)}';
       statusColor = '#EF4444';
     }
 
@@ -248,15 +248,21 @@ class ExamQuestionReviewView extends StatelessWidget {
       buf.write('<div style="font-size:14px; line-height:1.6; margin-bottom:16px;">$questionHtml</div>');
     }
 
-    // MCQ options
-    if (questionType == 'mcq_single' || questionType == 'mcq_multiple' || questionType == 'short_answer') {
+    // MCQ options (single / multiple / single dropdown / multi dropdown)
+    if (questionType == 'mcq_single' ||
+        questionType == 'mcq_multiple' ||
+        questionType == 'single_dropdown' ||
+        questionType == 'dropdown' ||
+        questionType == 'multi_dropdown') {
+      final selectedLabels = userAnswer.isEmpty
+          ? <String>{}
+          : userAnswer.toUpperCase().split(';').where((s) => s.isNotEmpty).toSet();
       for (int i = 0; i < options.length; i++) {
         final option = options[i];
         final key = option['key'] ?? String.fromCharCode(65 + i);
         final label = key.toString();
         final optionHtml = option['textHtml'] ?? '';
         final isOptionCorrect = option['isCorrect'] == true;
-        final selectedLabels = userAnswer.toUpperCase().split(';').toSet();
         final isSelected = selectedLabels.contains(label.toUpperCase());
         final isUserWrong = isSelected && !isOptionCorrect;
 
@@ -308,6 +314,109 @@ class ExamQuestionReviewView extends StatelessWidget {
 <div style="padding:12px; border-radius:8px; border:2px solid #10B981; background:#ECFDF5;">
   <span style="font-weight:600; color:#10B981;">✔ Correct Answer: $correctDisplay</span>
 </div>
+''');
+    }
+
+    // Short answer (text input)
+    if (questionType == 'short_answer') {
+      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
+      final userBorder = isCorrect ? '#10B981' : '#EF4444';
+      final userBg = isCorrect ? '#ECFDF5' : '#FEE2E2';
+      final displayAnswer = isSkipped || userAnswer.isEmpty ? 'Skipped' : userAnswer;
+
+      buf.write('''
+<div style="padding:12px; border-radius:8px; border:2px solid $userBorder; background:$userBg; margin-bottom:8px;">
+  <span style="font-weight:600; color:$userBorder;">${isCorrect ? '✔' : '✘'} Your Answer: $displayAnswer</span>
+</div>
+<div style="padding:12px; border-radius:8px; border:2px solid #10B981; background:#ECFDF5;">
+  <span style="font-weight:600; color:#10B981;">✔ Correct Answer: $correctAnswer</span>
+</div>
+''');
+    }
+
+    // True / False
+    if (questionType == 'true_false' || questionType == 'boolean') {
+      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
+      for (final opt in const ['True', 'False']) {
+        final isOptionCorrect = opt.toLowerCase() == correctAnswer.toLowerCase();
+        final isSelected = opt.toLowerCase() == userAnswer.toLowerCase();
+        final isUserWrong = isSelected && !isOptionCorrect;
+
+        String border, background;
+        if (isOptionCorrect) {
+          border = '2px solid #10B981';
+          background = '#ECFDF5';
+        } else if (isUserWrong) {
+          border = '2px solid #EF4444';
+          background = '#FEE2E2';
+        } else {
+          border = '1px solid #E5E7EB';
+          background = 'transparent';
+        }
+        buf.write('''
+<div style="padding:12px; margin-bottom:10px; border-radius:10px; border:$border; background-color:$background;">
+  <div style="font-size:14px; font-weight:${isSelected ? '600' : '500'};">$opt</div>
+  ${isUserWrong ? '<div style="margin-top:6px; font-size:12px; font-weight:600; color:#EF4444;">Your Answer</div>' : ''}
+  ${isOptionCorrect ? '<div style="margin-top:6px; font-size:12px; font-weight:600; color:#10B981;">Correct Answer</div>' : ''}
+</div>
+''');
+      }
+    }
+
+    // Match the Following (A:PS;B:QR)
+    if (questionType == 'match_the_following' ||
+        questionType == 'maq' ||
+        questionType == 'matrix' ||
+        questionType == 'matrix_match') {
+      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
+      Map<String, String> parsePairs(String raw) {
+        final out = <String, String>{};
+        if (raw.isEmpty) return out;
+        for (final p in raw.split(';')) {
+          final parts = p.split(':');
+          if (parts.length == 2) out[parts[0].trim()] = parts[1].trim();
+        }
+        return out;
+      }
+
+      final userPairs = parsePairs(userAnswer);
+      final correctPairs = parsePairs(correctAnswer);
+      final lefts = {...userPairs.keys, ...correctPairs.keys}.toList()..sort();
+
+      buf.write('<div style="border:1px solid #E5E7EB; border-radius:8px; overflow:hidden;">');
+      buf.write('<div style="display:flex; padding:8px 12px; background:#F3F4F6; font-size:12px; font-weight:700;">'
+          '<div style="flex:1;">Left</div>'
+          '<div style="flex:1;">Your Answer</div>'
+          '<div style="flex:1;">Correct Answer</div>'
+          '</div>');
+      for (final left in lefts) {
+        final u = userPairs[left] ?? '-';
+        final c = correctPairs[left] ?? '-';
+        final ok = u.split('').toSet().toString() == c.split('').toSet().toString();
+        final color = (userPairs[left] == null) ? '#6B7280' : (ok ? '#10B981' : '#EF4444');
+        buf.write('<div style="display:flex; padding:8px 12px; border-top:1px solid #E5E7EB; font-size:13px;">'
+            '<div style="flex:1; font-weight:600;">$left</div>'
+            '<div style="flex:1; color:$color; font-weight:600;">$u</div>'
+            '<div style="flex:1; color:#10B981; font-weight:600;">$c</div>'
+            '</div>');
+      }
+      buf.write('</div>');
+    }
+
+    // Subjective (free-form text)
+    if (questionType == 'subjective') {
+      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
+      final displayAnswer = isSkipped || userAnswer.isEmpty ? 'Skipped' : userAnswer;
+      buf.write('''
+<div style="padding:12px; border-radius:8px; border:1px solid #E5E7EB; background:#F9FAFB; margin-bottom:8px;">
+  <div style="font-size:12px; font-weight:700; color:#6B7280; margin-bottom:6px;">Your Answer</div>
+  <div style="font-size:14px; line-height:1.6;">$displayAnswer</div>
+</div>
+${correctAnswer.isNotEmpty ? '''
+<div style="padding:12px; border-radius:8px; border:1px solid #10B981; background:#ECFDF5;">
+  <div style="font-size:12px; font-weight:700; color:#10B981; margin-bottom:6px;">Model Answer</div>
+  <div style="font-size:14px; line-height:1.6;">$correctAnswer</div>
+</div>''' : ''}
 ''');
     }
 

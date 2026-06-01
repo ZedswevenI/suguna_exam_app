@@ -168,6 +168,7 @@ class TestPlayerController extends GetxController {
               : [];
           break;
 
+        case QuestionType.integer:
         case QuestionType.numerical:
           question.numericalAnswer =  userAnswer != null ? double.tryParse(userAnswer) : null;
           break;
@@ -346,6 +347,7 @@ class TestPlayerController extends GetxController {
   }
 
   void selectAnswer(String answer) {
+    if (isTimerCompleted) return;
     final question = currentQuestion;
 
     switch (question.type) {
@@ -374,6 +376,7 @@ class TestPlayerController extends GetxController {
   }
 
   void setTextAnswer(String text) {
+    if (isTimerCompleted) return;
     currentQuestion.textAnswer = text;
     if (currentQuestion.status == QuestionStatus.notVisited) {
       currentQuestion.status = QuestionStatus.answered;
@@ -383,6 +386,7 @@ class TestPlayerController extends GetxController {
 
 
   void selectMatch(String left, String right) {
+    if (isTimerCompleted) return;
     currentQuestion.matchAnswers ??= {};
     final list = currentQuestion.matchAnswers![left] ?? [];
     if (list.contains(right)) {
@@ -398,6 +402,7 @@ class TestPlayerController extends GetxController {
   }
 
   void setNumericalAnswer(double value) {
+    if (isTimerCompleted) return;
     currentQuestion.numericalAnswer = value;
     if (currentQuestion.status == QuestionStatus.notVisited) {
       currentQuestion.status = QuestionStatus.answered;
@@ -446,8 +451,13 @@ class TestPlayerController extends GetxController {
       currentCategory.questions[currentQuestionIndex.value];
 
   void selectCategory(int index) {
+    _recordTimeForCurrentQuestion();
     currentCategoryIndex.value = index;
     currentQuestionIndex.value = 0;
+    _syncNumericalField();
+    _syncSubjectFilter();
+    _startQuestionTimer();
+    updateView();
   }
 
   void selectQuestion(int categoryIndex, int questionIndex) {
@@ -456,6 +466,7 @@ class TestPlayerController extends GetxController {
     currentQuestionIndex.value = questionIndex;
     _syncNumericalField();
     _syncSubjectFilter();
+    _startQuestionTimer();
     updateView();
   }
 
@@ -493,6 +504,7 @@ class TestPlayerController extends GetxController {
             question.matchAnswers!.isNotEmpty;
         break;
 
+      case QuestionType.integer:
       case QuestionType.numerical:
         isAnswered = question.numericalAnswer != null;
         break;
@@ -509,7 +521,79 @@ class TestPlayerController extends GetxController {
         ? QuestionStatus.answered
         : QuestionStatus.notAnswered;
 
+    if (isAllAnswered) {
+      _showAllAnsweredDialog();
+      updateView();
+      return;
+    }
+
     _goToNextQuestion();
+  }
+
+  bool _isQuestionAttempted(Question q) {
+    switch (q.type) {
+      case QuestionType.mcqSingle:
+      case QuestionType.trueFalse:
+      case QuestionType.singleDropdown:
+        return q.selectedAnswer != null;
+      case QuestionType.mcqMultiple:
+      case QuestionType.multiDropdown:
+        return q.selectedAnswers != null && q.selectedAnswers!.isNotEmpty;
+      case QuestionType.matchTheFollowing:
+        return q.matchAnswers != null && q.matchAnswers!.isNotEmpty;
+      case QuestionType.integer:
+      case QuestionType.numerical:
+        return q.numericalAnswer != null;
+      case QuestionType.textType:
+      case QuestionType.subjective:
+        return q.textAnswer != null && q.textAnswer!.trim().isNotEmpty;
+    }
+  }
+
+  bool get isAllAnswered {
+    for (var cat in categories) {
+      for (var q in cat.questions) {
+        if (!_isQuestionAttempted(q)) return false;
+      }
+    }
+    return categories.isNotEmpty;
+  }
+
+  void _showAllAnsweredDialog() {
+    if (Get.isDialogOpen ?? false) return;
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981)),
+            SizedBox(width: 12),
+            Text('All Done!'),
+          ],
+        ),
+        content: const Text(
+          'You have answered all the questions. Please submit.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Review'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.back();
+              completeTest();
+            },
+            icon: const Icon(Icons.check_rounded, size: 18),
+            label: const Text('Submit'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void clearResponse() {
@@ -530,11 +614,9 @@ class TestPlayerController extends GetxController {
 
   void saveAndMarkForReview() {
     _recordTimeForCurrentQuestion();
-    if (currentQuestion.selectedAnswer != null) {
-      currentQuestion.status = QuestionStatus.answeredAndMarked;
-    } else {
-      currentQuestion.status = QuestionStatus.markedForReview;
-    }
+    currentQuestion.status = _isQuestionAttempted(currentQuestion)
+        ? QuestionStatus.answeredAndMarked
+        : QuestionStatus.markedForReview;
     _goToNextQuestion();
   }
 
@@ -552,45 +634,143 @@ class TestPlayerController extends GetxController {
 
   void previous() {
     _recordTimeForCurrentQuestion();
-    _syncNumericalField();
-    if (currentQuestionIndex.value > 0) {
-      currentQuestionIndex.value--;
-    } else if (currentCategoryIndex.value > 0) {
-      currentCategoryIndex.value--;
-      currentQuestionIndex.value = currentCategory.questions.length - 1;
+    numericalController.clear();
+
+    final filtered = filteredCategories;
+
+    if (filtered.isEmpty) {
+      // No filter active — raw navigation
+      if (currentQuestionIndex.value > 0) {
+        currentQuestionIndex.value--;
+      } else if (currentCategoryIndex.value > 0) {
+        currentCategoryIndex.value--;
+        currentQuestionIndex.value = currentCategory.questions.length - 1;
+      }
+    } else {
+      // Find current question in filtered view
+      final currentQ = currentQuestion;
+      int filteredCatIdx = -1;
+      int filteredQIdx = -1;
+
+      for (int ci = 0; ci < filtered.length; ci++) {
+        final qi = filtered[ci].questions.indexWhere((q) => q.number == currentQ.number);
+        if (qi != -1) {
+          filteredCatIdx = ci;
+          filteredQIdx = qi;
+          break;
+        }
+      }
+
+      if (filteredCatIdx != -1) {
+        if (filteredQIdx > 0) {
+          // Previous question in same filtered category
+          _jumpToQuestion(filtered[filteredCatIdx].questions[filteredQIdx - 1].number);
+        } else if (filteredCatIdx > 0) {
+          // Last question of previous filtered category (same subject)
+          _jumpToQuestion(filtered[filteredCatIdx - 1].questions.last.number);
+        } else {
+          // First question of current subject — switch to previous subject
+          final currentSubject = selectedSubjectFilter.value;
+          final currentSubjectIdx = availableSubjects.indexWhere((s) => s.name == currentSubject);
+          if (currentSubjectIdx > 0) {
+            final prevSubject = availableSubjects[currentSubjectIdx - 1];
+            setSubjectFilter(prevSubject.name);
+            // Navigate to last question of the previous subject
+            final prevFiltered = filteredCategories;
+            if (prevFiltered.isNotEmpty) {
+              _jumpToQuestion(prevFiltered.last.questions.last.number);
+            }
+          }
+          // else: first subject, first question — do nothing
+        }
+      }
     }
+
+    _syncNumericalField();
     _syncSubjectFilter();
+    _startQuestionTimer();
     updateView();
   }
 
   void _goToNextQuestion() {
     numericalController.clear();
-    if (currentQuestionIndex.value < currentCategory.questions.length - 1) {
-      currentQuestionIndex.value++;
-    } else if (currentCategoryIndex.value < categories.length - 1) {
-      currentCategoryIndex.value++;
-      currentQuestionIndex.value = 0;
+
+    final filtered = filteredCategories;
+
+    if (filtered.isEmpty) {
+      // No filter active — raw navigation
+      if (currentQuestionIndex.value < currentCategory.questions.length - 1) {
+        currentQuestionIndex.value++;
+      } else if (currentCategoryIndex.value < categories.length - 1) {
+        currentCategoryIndex.value++;
+        currentQuestionIndex.value = 0;
+      }
+    } else {
+      // Find current question in filtered view
+      final currentQ = currentQuestion;
+      int filteredCatIdx = -1;
+      int filteredQIdx = -1;
+
+      for (int ci = 0; ci < filtered.length; ci++) {
+        final qi = filtered[ci].questions.indexWhere((q) => q.number == currentQ.number);
+        if (qi != -1) {
+          filteredCatIdx = ci;
+          filteredQIdx = qi;
+          break;
+        }
+      }
+
+      if (filteredCatIdx == -1) {
+        // Current question not in filtered view — jump to first filtered question
+        _jumpToQuestion(filtered.first.questions.first.number);
+      } else {
+        if (filteredQIdx < filtered[filteredCatIdx].questions.length - 1) {
+          // Next question in same filtered category
+          _jumpToQuestion(filtered[filteredCatIdx].questions[filteredQIdx + 1].number);
+        } else if (filteredCatIdx < filtered.length - 1) {
+          // First question of next filtered category (same subject)
+          _jumpToQuestion(filtered[filteredCatIdx + 1].questions.first.number);
+        } else {
+          // Last question of current subject — switch to next subject
+          final currentSubject = selectedSubjectFilter.value;
+          final currentSubjectIdx = availableSubjects.indexWhere((s) => s.name == currentSubject);
+          if (currentSubjectIdx != -1 && currentSubjectIdx < availableSubjects.length - 1) {
+            final nextSubject = availableSubjects[currentSubjectIdx + 1];
+            setSubjectFilter(nextSubject.name);
+          }
+          // else: last subject, last question — do nothing
+        }
+      }
     }
+
     _startQuestionTimer();
     _syncNumericalField();
     _syncSubjectFilter();
     updateView();
   }
 
+  /// Resolves a question by its number and sets the raw category + question indices.
+  void _jumpToQuestion(int questionNumber) {
+    for (int ci = 0; ci < categories.length; ci++) {
+      final qi = categories[ci].questions.indexWhere((q) => q.number == questionNumber);
+      if (qi != -1) {
+        currentCategoryIndex.value = ci;
+        currentQuestionIndex.value = qi;
+        return;
+      }
+    }
+  }
+
   void _syncNumericalField() {
     final question = currentQuestion;
-    if (question.type == QuestionType.numerical) {
-      if (question.numericalAnswer != null) {
-        numericalController.text = question.numericalAnswer.toString();
-      } else {
-        numericalController.clear();
-      }
-    } else if (question.type == QuestionType.textType) {
-      if (question.textAnswer != null) {
-        numericalController.text = question.textAnswer.toString();
-      } else {
-        numericalController.clear();
-      }
+    if (question.type == QuestionType.numerical ||
+        question.type == QuestionType.integer) {
+      numericalController.text = question.numericalAnswer != null
+          ? question.numericalAnswer.toString()
+          : '';
+    } else if (question.type == QuestionType.textType ||
+               question.type == QuestionType.subjective) {
+      numericalController.text = question.textAnswer ?? '';
     } else {
       numericalController.clear();
     }
@@ -694,6 +874,8 @@ class TestPlayerController extends GetxController {
   }
 
   void _onTimeUp() {
+    _recordTimeForCurrentQuestion();
+    _questionStartTime = null;
     unlockScreen();
     Get.snackbar(
       'Time Up',
@@ -826,6 +1008,7 @@ class TestPlayerController extends GetxController {
         final userAnswers = question.selectedAnswers?.toSet() ?? {};
         return correctAnswers.toString() == userAnswers.toString();
 
+      case QuestionType.integer:
       case QuestionType.numerical:
         // For numerical, parse and compare
         if (correctAnswer is bool) {
@@ -906,6 +1089,7 @@ class TestPlayerController extends GetxController {
         }
         return question.selectedAnswers!.join(', ');
 
+      case QuestionType.integer:
       case QuestionType.numerical:
         return question.numericalAnswer?.toString() ?? 'Not Answered';
 
@@ -1371,6 +1555,7 @@ class TestPlayerController extends GetxController {
       case QuestionType.multiDropdown:
         return question.selectedAnswers?.join(';') ?? '';
 
+      case QuestionType.integer:
       case QuestionType.numerical:
         return question.numericalAnswer?.toString() ?? '';
 
@@ -1673,7 +1858,12 @@ class TestPlayerController extends GetxController {
 
   void _recordTimeForCurrentQuestion() {
     if (_questionStartTime == null) return;
+    if (categories.isEmpty) return;
     final spent = DateTime.now().difference(_questionStartTime!).inSeconds;
+    if (spent <= 0) {
+      _questionStartTime = DateTime.now();
+      return;
+    }
     final number = currentQuestion.number;
     questionTimeSpent[number] = (questionTimeSpent[number] ?? 0) + spent;
     _questionStartTime = DateTime.now();

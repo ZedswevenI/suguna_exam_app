@@ -44,6 +44,8 @@ class MainActivity : FlutterActivity() {
                             WindowManager.LayoutParams.FLAG_SECURE,
                             WindowManager.LayoutParams.FLAG_SECURE
                         )
+                        // Keep screen awake during exam (prevent auto-lock)
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         startLockTask()
                         handler.removeCallbacks(lockMonitor)
                         handler.postDelayed(lockMonitor, lockCheckInterval)
@@ -54,6 +56,8 @@ class MainActivity : FlutterActivity() {
                         handler.removeCallbacks(lockMonitor)
                         // Remove screenshot block
                         window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                        // Release wake lock
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         stopLockTask()
                         result.success(true)
                     }

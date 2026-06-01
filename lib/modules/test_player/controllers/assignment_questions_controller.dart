@@ -111,6 +111,7 @@ class AssignmentQuestionsController extends GetxController {
               : [];
           break;
 
+        case QuestionType.integer:
         case QuestionType.numerical:
           question.numericalAnswer =  userAnswer != null ? double.tryParse(userAnswer) : null;
           break;
@@ -167,6 +168,7 @@ class AssignmentQuestionsController extends GetxController {
         final userAnswers = question.selectedAnswers?.toSet() ?? {};
         return correctAnswers.toString() == userAnswers.toString();
 
+      case QuestionType.integer:
       case QuestionType.numerical:
       // For numerical, parse and compare
         if (correctAnswer is bool) {
@@ -247,6 +249,7 @@ class AssignmentQuestionsController extends GetxController {
         }
         return question.selectedAnswers!.join(', ');
 
+      case QuestionType.integer:
       case QuestionType.numerical:
         return question.numericalAnswer?.toString() ?? 'Not Answered';
 

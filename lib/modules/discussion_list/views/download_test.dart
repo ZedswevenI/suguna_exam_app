@@ -195,18 +195,28 @@ class _DownloadTestState extends State<DownloadTest>
       controller: _tab,
       physics: const NeverScrollableScrollPhysics(),
       children: List.generate(6, (i) {
-        return Obx(() {
-          final filtered = _getFilteredExams(i);
-          if (filtered.isEmpty) {
-            return const Center(
-              child: Text(
-                'No exams available',
-                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
-              ),
-            );
-          }
-          return _ExamGrid(exams: filtered);
-        });
+        return RefreshIndicator(
+          color: _C.primary,
+          onRefresh: () async => controller.fetchExams(),
+          child: Obx(() {
+            final filtered = _getFilteredExams(i);
+            if (filtered.isEmpty) {
+              // ListView so RefreshIndicator has a scrollable to attach to
+              return ListView(
+                children: const [
+                  SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      'No exams available',
+                      style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return _ExamGrid(exams: filtered);
+          }),
+        );
       }),
     );
   }

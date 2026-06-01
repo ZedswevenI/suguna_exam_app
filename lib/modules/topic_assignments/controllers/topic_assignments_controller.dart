@@ -397,8 +397,30 @@ class TopicAssignmentsController extends GetxController {
   }
 
   List<String> _extractImageUrls(String html) {
-    final regex = RegExp(r'<img[^>]+src="([^">]+)"');
-    return regex.allMatches(html).map((m) => m.group(1)!).toList();
+    final regex = RegExp(r'''<img[^>]+src\s*=\s*["']([^"'>]+)["']''');
+    return regex
+        .allMatches(html)
+        .map((m) => m.group(1)!)
+        .where((u) => !u.startsWith('data:'))
+        .toList();
+  }
+
+  String _mimeFromUrl(String url) {
+    final ext = url.split('?').first.split('#').first.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'bmp':
+        return 'image/bmp';
+      default:
+        return 'image/jpeg';
+    }
   }
 
   Future<String> _replaceImagesWithBase64(String html) async {
@@ -406,25 +428,34 @@ class TopicAssignmentsController extends GetxController {
 
     for (final url in urls) {
       try {
-        final signedResponse = await _apiService.downloadQuestionImage(url);
+        // 1. Try to get a signed URL from the backend
+        String? signedUrl;
+        try {
+          final signedResponse = await _apiService.downloadQuestionImage(url);
+          final ok = signedResponse['status'] == true ||
+              signedResponse['status']?.toString() == 'true' ||
+              signedResponse['success'] == true;
+          final returnedUrl = (signedResponse['url'] ?? signedResponse['data']?['url'])?.toString();
+          if (ok && returnedUrl != null && returnedUrl.isNotEmpty) {
+            signedUrl = returnedUrl;
+          }
+        } catch (e) {
+          print('Assignment signed-url API failed for $url: $e');
+        }
 
-        if (signedResponse['status'] != true) continue;
-
-        final signedUrl = signedResponse['url'];
-
-        final bytes = await _apiService.downloadImageBytes(signedUrl);
+        // 2. Fall back to the original URL if no signed URL was returned
+        final fetchUrl = signedUrl ?? url;
+        final bytes = await _apiService.downloadImageBytes(fetchUrl);
+        if (bytes.isEmpty) {
+          print('Assignment image empty bytes for $fetchUrl');
+          continue;
+        }
         final base64Str = base64Encode(bytes);
-
-        final extension = url.split('.').last.split('?').first;
-        final mimeType = extension.contains('png')
-            ? 'image/png'
-            : 'image/jpeg';
-
-        final base64Tag = 'data:$mimeType;base64,$base64Str';
+        final base64Tag = 'data:${_mimeFromUrl(url)};base64,$base64Str';
 
         html = html.replaceAll(url, base64Tag);
       } catch (e) {
-        print("Image convert failed: $e");
+        print("Image convert failed for $url: $e");
       }
     }
 
@@ -440,19 +471,51 @@ class TopicAssignmentsController extends GetxController {
     for (var question in questions) {
 
       // Process questionHtml
-      if (question['questionHtml'] != null) {
+      if (question['questionHtml'] is String && (question['questionHtml'] as String).isNotEmpty) {
         question['questionHtml'] =
-        await _replaceImagesWithBase64(question['questionHtml']);
+            await _replaceImagesWithBase64(question['questionHtml']);
+      }
+
+      // Process passage HTML
+      final passage = question['passageData'];
+      if (passage is Map && passage['passageHtml'] is String &&
+          (passage['passageHtml'] as String).isNotEmpty) {
+        passage['passageHtml'] =
+            await _replaceImagesWithBase64(passage['passageHtml']);
       }
 
       // Process options
-      if (question['questionOptions'] != null) {
-        for (var option in question['questionOptions']) {
-          if (option['textHtml'] != null) {
+      if (question['questionOptions'] is List) {
+        for (var option in (question['questionOptions'] as List)) {
+          if (option is Map && option['textHtml'] is String &&
+              (option['textHtml'] as String).isNotEmpty) {
             option['textHtml'] =
-            await _replaceImagesWithBase64(option['textHtml']);
+                await _replaceImagesWithBase64(option['textHtml']);
           }
         }
+      }
+
+      // Process match-the-following columns
+      for (final colKey in const ['leftColumn', 'rightColumn']) {
+        if (question[colKey] is List) {
+          for (var cell in (question[colKey] as List)) {
+            if (cell is Map && cell['text'] is String &&
+                (cell['text'] as String).isNotEmpty) {
+              cell['text'] = await _replaceImagesWithBase64(cell['text']);
+            }
+            if (cell is Map && cell['textHtml'] is String &&
+                (cell['textHtml'] as String).isNotEmpty) {
+              cell['textHtml'] = await _replaceImagesWithBase64(cell['textHtml']);
+            }
+          }
+        }
+      }
+
+      // Process solutionHtml
+      if (question['solutionHtml'] is String &&
+          (question['solutionHtml'] as String).isNotEmpty) {
+        question['solutionHtml'] =
+            await _replaceImagesWithBase64(question['solutionHtml']);
       }
     }
 

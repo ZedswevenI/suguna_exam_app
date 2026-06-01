@@ -36,19 +36,6 @@ class QuestionOptionsWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-
-              controller.isLatex(question.questionHtml ?? "") && question.type == QuestionType.trueFalse ? texText(question.questionHtml ?? "", fontSize: controller.getQuestionFontSize()) : Container(),
-              // controller.isLatex(question.questionHtml ?? "") ? Container() : Text(
-              //   // question.questionHtml ?? "",
-              //   "",
-              //   style: TextStyle(
-              //     fontSize: controller.getQuestionFontSize(),
-              //     height: 1.6,
-              //     color: AppColors.textPrimary,
-              //     fontWeight: FontWeight.w500,
-              //   ),
-              // ),
-              // const SizedBox(height: 16),
               _buildQuestionWidget(question,controller),
             ],
           ),
@@ -66,6 +53,7 @@ class QuestionOptionsWidget extends StatelessWidget {
         return _buildMCQMultiple(question,controller);
       case QuestionType.matchTheFollowing:
         return _buildMAQ(question,controller);
+      case QuestionType.integer:
       case QuestionType.numerical:
         return _buildNumerical(question,controller);
       case QuestionType.trueFalse:
@@ -86,7 +74,7 @@ class QuestionOptionsWidget extends StatelessWidget {
     return TeXView(style: const TeXViewStyle(
       backgroundColor: Colors.transparent, padding: TeXViewPadding.all(0),),
       child: TeXViewColumn(children: [
-        TeXViewDocument(question.questionHtml ?? "", style: TeXViewStyle.fromCSS(
+        TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
           'font-size:${controller
               .getQuestionFontSize()}px; margin-bottom:16px;',),),
         ...question.options.asMap().entries.map((entry) {
@@ -165,7 +153,7 @@ class QuestionOptionsWidget extends StatelessWidget {
       child: TeXViewColumn(
         children: [
           TeXViewDocument(
-            question.questionHtml ?? "",
+            _effectiveHtml(question, controller),
             style: TeXViewStyle.fromCSS(
               'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
             ),
@@ -225,9 +213,9 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
     // Build all children for TeXViewColumn
     final List<TeXViewWidget> children = [];
 
-    // 1. Question HTML (contains LaTeX)
+    // 1. Question HTML (contains LaTeX) — includes passage if present
     children.add(TeXViewDocument(
-      question.questionHtml ?? '',
+      _effectiveHtml(question, controller),
       style: TeXViewStyle.fromCSS(
         'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
       ),
@@ -337,7 +325,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
       children: [
         TeXView(child:  TeXViewColumn(
             children: [
-              TeXViewDocument(question.questionHtml ?? "", style: TeXViewStyle.fromCSS(
+              TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
                 'font-size:${controller
                     .getQuestionFontSize()}px; margin-bottom:16px;',),),
               // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
@@ -345,9 +333,9 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
               //       .getQuestionFontSize()}px; margin-bottom:16px;',),),
             ]
         ),
-        // controller.isLatex(question.questionHtml ?? "") ? TeXView(child:  TeXViewColumn(
+        // controller.isLatex(_effectiveHtml(question, controller)) ? TeXView(child:  TeXViewColumn(
         //     children: [
-        //       TeXViewDocument(question.questionHtml ?? "", style: TeXViewStyle.fromCSS(
+        //       TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
         //         'font-size:${controller
         //             .getQuestionFontSize()}px; margin-bottom:16px;',),),
         //       // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
@@ -358,7 +346,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         //   children: [
         //
         //     Text(
-        //       question.questionHtml ?? "",
+        //       _effectiveHtml(question, controller),
         //       style: TextStyle(
         //         fontSize: controller.getQuestionFontSize(),
         //         height: 1.6,
@@ -379,12 +367,17 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         ),
         GetBuilder<TestPlayerController>(
           builder: (controller) {
+            final isInteger = question.isInteger;
             return TextField(
-              controller: controller.numericalController,  // 👈 important
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [_SingleDecimalFormatter()],
+              controller: controller.numericalController,
+              keyboardType: TextInputType.numberWithOptions(decimal: !isInteger),
+              inputFormatters: isInteger
+                  ? [FilteringTextInputFormatter.digitsOnly]
+                  : [_SingleDecimalFormatter()],
               decoration: InputDecoration(
-                hintText: 'Enter your answer',
+                hintText: isInteger
+                    ? 'Enter integer answer'
+                    : 'Enter your answer',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -462,10 +455,27 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
       );
     }
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildOption('True'),
-        buildOption('False'),
+        TeXView(
+          style: const TeXViewStyle(
+            backgroundColor: Colors.transparent,
+            padding: TeXViewPadding.all(0),
+          ),
+          child: TeXViewDocument(
+            _effectiveHtml(question, controller),
+            style: TeXViewStyle.fromCSS(
+              'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            buildOption('True'),
+            buildOption('False'),
+          ],
+        ),
       ],
     );
   }
@@ -569,10 +579,10 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            controller.isLatex(question.questionHtml ?? "") ? TeXView(
+            controller.isLatex(_effectiveHtml(question, controller)) ? TeXView(
               child:  TeXViewColumn(
                 children: [
-                  TeXViewDocument(question.questionHtml ?? "", style: TeXViewStyle.fromCSS(
+                  TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
                     'font-size:${controller
                         .getQuestionFontSize()}px; margin-bottom:16px;',),),
                   // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
@@ -582,7 +592,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
             ),) : Column(
               children: [
                 Text(
-                  question.questionHtml ?? "",
+                  _effectiveHtml(question, controller),
                   style: TextStyle(
                     fontSize: controller.getQuestionFontSize(),
                     height: 1.6,
@@ -604,7 +614,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
               builder: (controller) {
                 return TextField(
                   controller: controller.numericalController,  // 👈 important
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Enter your answer',
                     border: OutlineInputBorder(
@@ -656,6 +666,18 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            TeXView(
+              style: const TeXViewStyle(
+                backgroundColor: Colors.transparent,
+                padding: TeXViewPadding.all(0),
+              ),
+              child: TeXViewDocument(
+                _effectiveHtml(question, controller),
+                style: TeXViewStyle.fromCSS(
+                  'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
+                ),
+              ),
+            ),
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 16),
@@ -680,6 +702,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
               ),
             ),
             TextField(
+              controller: controller.numericalController,
               maxLines: 8,
               decoration: InputDecoration(
                 hintText: 'Type your answer here...',
@@ -802,6 +825,35 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
   }
 
 
+
+  /// Combines passage (if any) + question HTML into a single HTML string
+  /// so both render inside one TeXView and avoid the Android double-WebView crash.
+  String _effectiveHtml(Question question, TestPlayerController controller) {
+    final qHtml = question.questionHtml ?? '';
+    final passage = question.passageHtml;
+    if (passage == null || passage.isEmpty) return qHtml;
+    final fs = controller.getQuestionFontSize();
+    return '''
+<div style="
+  background:#f0f4ff;
+  border-left:4px solid #4F46E5;
+  border-radius:8px;
+  padding:12px 14px;
+  margin-bottom:16px;
+  font-size:${fs}px;
+  line-height:1.7;
+  color:#1e293b;
+  width:100%;
+  box-sizing:border-box;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+  white-space:normal;
+">
+  <div style="font-size:11px;font-weight:700;color:#4F46E5;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Passage</div>
+  <div style="word-wrap:break-word;overflow-wrap:break-word;white-space:normal;">$passage</div>
+</div>
+$qHtml''';
+  }
 
 }
 

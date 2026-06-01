@@ -64,14 +64,16 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                   _buildTopBar(controller),
                   Obx(() {
                     return Expanded(
-                      child: AbsorbPointer(
-                        absorbing: controller.isTimerCompleted,
-                        child: Row(
-                          children: [
-                            Expanded(child: _buildQuestionPanel(controller)),
-                            _buildQuestionPalette(controller),
-                          ],
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: IgnorePointer(
+                              ignoring: controller.isTimerCompleted,
+                              child: _buildQuestionPanel(controller),
+                            ),
+                          ),
+                          _buildQuestionPalette(controller),
+                        ],
                       ),
                     );
                   }),
@@ -1223,6 +1225,17 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
   Widget _buildMiniPalette({
     required QuestionStatus status,
   }) {
+    // Give the mini-palette extra room so the green tick badge isn't clipped.
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: Center(
+        child: _buildMiniPaletteCore(status),
+      ),
+    );
+  }
+
+  Widget _buildMiniPaletteCore(QuestionStatus status) {
     Color bgColor;
     Color textColor = Colors.white;
     bool showTick = false;
@@ -1465,19 +1478,22 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
 
     return InkWell(
       onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: borderRadiusGeometry, // 🔥 key fix
-          border: border,
-        ),
+      child: SizedBox(
+        width: 42,
+        height: 42,
         child: Stack(
           clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            Center(
+            Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: borderRadiusGeometry,
+                border: border,
+              ),
               child: Text(
                 number.toString(),
                 style: TextStyle(
@@ -1487,16 +1503,23 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                 ),
               ),
             ),
-
-            // ✅ Tick exactly like exam palette
             if (showTick)
-              const Positioned(
-                top: -3,
-                right: -3,
-                child: Icon(
-                  Icons.check_circle,
-                  size: 14,
-                  color: Color(0xFF22C55E),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 16,
+                    color: Color(0xFF22C55E),
+                  ),
                 ),
               ),
           ],

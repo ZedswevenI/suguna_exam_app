@@ -31,6 +31,7 @@ enum QuestionType {
   mcqMultiple,
   matchTheFollowing,
   numerical,
+  integer,
   subjective,
   trueFalse,
   singleDropdown,
@@ -80,7 +81,9 @@ class Question {
   final double? minRange;
   final double? maxRange;
   final String? questionHtml;
+  final String? passageHtml;
   final String? sectionId;
+  bool isInteger;
 
   // ✅ Correct Answer Storage
   final String? correctAnswer;
@@ -107,7 +110,9 @@ class Question {
     this.minRange,
     this.maxRange,
     this.questionHtml,
+    this.passageHtml,
     this.sectionId,
+    this.isInteger = false,
     this.subject,
     this.correctAnswer,
     this.correctAnswers,
@@ -299,6 +304,7 @@ class TestApiParser {
             qJson['questionType'] as String? ?? 'mcq_single';
         final parsedType = _parseQuestionType(questionTypeFromApi);
         final rawOptions = qJson['questionOptions'] as List<dynamic>? ?? [];
+        final passageData = qJson['passageData'] as Map<String, dynamic>?;
         final question = Question(
           questionId: qJson['questionId'] as String? ?? '',
           number: i + 1,
@@ -307,7 +313,9 @@ class TestApiParser {
           negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
           text: qJson['questionText'] as String? ?? '',
           questionHtml: qJson['questionHtml'] as String?,
+          passageHtml: passageData?['passageHtml'] as String?,
           type: parsedType,
+          isInteger: questionTypeFromApi.toLowerCase() == 'integer',
           options: _parseOptions(rawOptions),
           matchPairs: parsedType == QuestionType.matchTheFollowing
               ? _parseMatchPairsFromColumns(qJson)
@@ -385,6 +393,7 @@ class TestApiParser {
         final sectionId = qJson['sectionId']?.toString();
 
         final rawOptions = qJson['questionOptions'] as List<dynamic>? ?? [];
+        final passageData = qJson['passageData'] as Map<String, dynamic>?;
         final question = Question(
           questionId: qJson['questionId'] as String? ?? '',
           number: i + 1,
@@ -394,7 +403,9 @@ class TestApiParser {
           negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
           text: qJson['questionText'] as String? ?? '',
           questionHtml: _stripLatexSpans(qJson['questionHtml'] as String? ?? ''),
+          passageHtml: passageData?['passageHtml'] as String?,
           type: parsedType,
+          isInteger: questionTypeFromApi.toLowerCase() == 'integer',
           options: _parseOptions(rawOptions),
           matchPairs: parsedType == QuestionType.matchTheFollowing
               ? _parseMatchPairsFromColumns(qJson)
@@ -473,7 +484,10 @@ class TestApiParser {
         return 'Match the Following';
 
       case QuestionType.numerical:
-        return 'Numerical / Integer';
+        return 'Numerical';
+
+      case QuestionType.integer:
+        return 'Integer';
 
       case QuestionType.textType:
         return 'Short Answer';
@@ -509,6 +523,7 @@ class TestApiParser {
       case 'matrix_match':
         return QuestionType.matchTheFollowing;
       case 'integer':
+        return QuestionType.integer;
       case 'numerical':
       case 'numeric':
         return QuestionType.numerical;

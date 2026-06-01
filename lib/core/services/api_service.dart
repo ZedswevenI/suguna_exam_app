@@ -57,17 +57,28 @@ class ApiService {
   }
 
   Future<List<int>> downloadImageBytes(String url) async {
+    // Use a clean Dio instance for AWS/S3 fetches — the main _dio has
+    // baseUrl + JSON Accept/Content-Type headers that interfere with S3.
+    final dio = Dio(BaseOptions(
+      connectTimeout: AppConstants.timeout,
+      receiveTimeout: AppConstants.timeout,
+      followRedirects: true,
+    ));
     try {
-      final response = await _dio.get(
+      final response = await dio.get<List<int>>(
         url,
         options: Options(
           responseType: ResponseType.bytes,
+          headers: {
+            'Accept': '*/*',
+          },
         ),
       );
-
-      return response.data;
+      return response.data ?? const [];
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } finally {
+      dio.close(force: true);
     }
   }
 

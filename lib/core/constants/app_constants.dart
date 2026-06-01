@@ -3,17 +3,19 @@ class AppConstants {
   static const String baseUrl = 'http://143.110.182.180:3012/api/crm';
   // static const String baseUrl = 'http://143.110.191.245:3012/api/crm';
   // static const String baseUrl = 'http://172.20.10.5:3012/api/crm';
-  // static const String baseUrl = 'http://192.168.1.53:3012/api/crm';
+  // static const String baseUrl = 'http://192.168.1.2:3012/api/crm';
   static const Duration timeout = Duration(seconds: 30);
 
 
   // Layout Constants
   static const double sidebarWidth = 300.0;
   static const double headerHeight = 64.0;
+
   static const double circleSize = 24.0;
 
   static const double circleSpacing = 8.0;
-  
+
+
   // Text Sizes
   static const double sectionTitleSize = 18.0;
   static const double normalTextSize = 14.0;

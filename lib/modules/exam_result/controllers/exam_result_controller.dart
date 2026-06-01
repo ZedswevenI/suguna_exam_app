@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/routes/app_routes.dart';
@@ -45,31 +47,34 @@ class ExamResultController extends GetxController {
 
       if (response['status'] == true) {
         final raw = Map<String, dynamic>.from(response['data'] as Map);
-        // Process LaTeX in all answer HTML fields
-        final answers = (raw['answers'] as List?)?.map((a) {
+        // Process LaTeX + download images for all answer HTML fields
+        final rawAnswers = (raw['answers'] as List?) ?? [];
+        final answers = <Map<String, dynamic>>[];
+        for (final a in rawAnswers) {
           final answer = Map<String, dynamic>.from(a as Map);
-          if (answer['questionHtml'] != null) {
-            answer['questionHtml'] =
-                _stripLatexSpans(answer['questionHtml'] as String);
+          if (answer['questionHtml'] is String) {
+            answer['questionHtml'] = await _replaceImagesWithBase64(
+                _stripLatexSpans(answer['questionHtml'] as String));
           }
-          if (answer['solutionHtml'] != null) {
-            answer['solutionHtml'] =
-                _stripLatexSpans(answer['solutionHtml'] as String);
+          if (answer['solutionHtml'] is String) {
+            answer['solutionHtml'] = await _replaceImagesWithBase64(
+                _stripLatexSpans(answer['solutionHtml'] as String));
           }
-          if (answer['questionOptions'] != null) {
-            answer['questionOptions'] =
-                (answer['questionOptions'] as List).map((opt) {
+          if (answer['questionOptions'] is List) {
+            final opts = <Map<String, dynamic>>[];
+            for (final opt in (answer['questionOptions'] as List)) {
               final option = Map<String, dynamic>.from(opt as Map);
-              if (option['textHtml'] != null) {
-                option['textHtml'] =
-                    _stripLatexSpans(option['textHtml'] as String);
+              if (option['textHtml'] is String) {
+                option['textHtml'] = await _replaceImagesWithBase64(
+                    _stripLatexSpans(option['textHtml'] as String));
               }
-              return option;
-            }).toList();
+              opts.add(option);
+            }
+            answer['questionOptions'] = opts;
           }
-          return answer;
-        }).toList();
-        if (answers != null) raw['answers'] = answers;
+          answers.add(answer);
+        }
+        raw['answers'] = answers;
         resultData.value = raw;
       } else {
         errorMessage.value = response['message'] ?? 'Failed to load result';
@@ -83,6 +88,64 @@ class ExamResultController extends GetxController {
 
   /// Retry loading result
   void retryLoadResult() => _loadResult();
+
+  // ── Image processing (download & embed as base64) ────────────────────────
+  List<String> _extractImageUrls(String html) {
+    final regex = RegExp(r'''<img[^>]+src\s*=\s*["']([^"'>]+)["']''');
+    return regex
+        .allMatches(html)
+        .map((m) => m.group(1)!)
+        .where((u) => !u.startsWith('data:'))
+        .toList();
+  }
+
+  String _mimeFromUrl(String url) {
+    final ext = url.split('?').first.split('#').first.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'bmp':
+        return 'image/bmp';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  Future<String> _replaceImagesWithBase64(String html) async {
+    final urls = _extractImageUrls(html);
+    for (final url in urls) {
+      try {
+        String? signedUrl;
+        try {
+          final signed = await _apiService.downloadExamQuestionImage(url);
+          final ok = signed['status'] == true ||
+              signed['status']?.toString() == 'true' ||
+              signed['success'] == true;
+          final returnedUrl = (signed['url'] ?? signed['data']?['url'])?.toString();
+          if (ok && returnedUrl != null && returnedUrl.isNotEmpty) {
+            signedUrl = returnedUrl;
+          }
+        } catch (e) {
+          print('Exam result signed-url failed for $url: $e');
+        }
+        final fetchUrl = signedUrl ?? url;
+        final bytes = await _apiService.downloadImageBytes(fetchUrl);
+        if (bytes.isEmpty) continue;
+        final base64Tag =
+            'data:${_mimeFromUrl(url)};base64,${base64Encode(bytes)}';
+        html = html.replaceAll(url, base64Tag);
+      } catch (e) {
+        print('Exam result image convert failed for $url: $e');
+      }
+    }
+    return html;
+  }
 
   /// Converts <span class="latex">$...$</span> to \(...\) for TeXView rendering
   static String _stripLatexSpans(String html) {
