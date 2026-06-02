@@ -20,6 +20,8 @@ class TestPlayerView extends StatefulWidget {
 
 class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObserver{
 
+  final ScrollController _categoryScrollController = ScrollController();
+  final Map<int, GlobalKey> _categoryTabKeys = {};
 
   @override
   void initState() {
@@ -30,7 +32,23 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _categoryScrollController.dispose();
     super.dispose();
+  }
+
+  void _ensureCurrentCategoryVisible(int rawIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _categoryTabKeys[rawIndex];
+      final ctx = key?.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          alignment: 0.5,
+        );
+      }
+    });
   }
 
   @override
@@ -352,6 +370,7 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
               children: [
                 Expanded(
                   child: SingleChildScrollView(
+                    controller: _categoryScrollController,
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -366,8 +385,14 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                             .indexWhere((c) => c.id == category.id);
                         final isSelected =
                             controller.currentCategoryIndex.value == rawIndex;
+                        final tabKey = _categoryTabKeys.putIfAbsent(
+                            rawIndex, () => GlobalKey());
+                        if (isSelected) {
+                          _ensureCurrentCategoryVisible(rawIndex);
+                        }
 
                         return Padding(
+                          key: tabKey,
                           padding: const EdgeInsets.only(right: 8),
                           child: _buildCategoryTab(
                             category: category,

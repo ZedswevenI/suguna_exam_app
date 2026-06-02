@@ -475,7 +475,7 @@ class TestApiParser {
   static String _getCategoryNameFromType(QuestionType type) {
     switch (type) {
       case QuestionType.mcqSingle:
-        return 'MCQ (Single Correct)';
+        return 'SCO ';
 
       case QuestionType.mcqMultiple:
         return 'MCQ (Multiple Correct)';

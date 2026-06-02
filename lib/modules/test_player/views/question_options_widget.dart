@@ -70,105 +70,83 @@ class QuestionOptionsWidget extends StatelessWidget {
   }
 
   // MCQ - Single Answer
-  Widget _buildMCQSingle(Question question,TestPlayerController controller) {
-    return TeXView(style: const TeXViewStyle(
-      backgroundColor: Colors.transparent, padding: TeXViewPadding.all(0),),
+  Widget _buildMCQSingle(Question question, TestPlayerController controller) {
+    return TeXView(
+      loadingWidgetBuilder: (_) => const SizedBox.shrink(),
+      style: const TeXViewStyle(
+        backgroundColor: Colors.transparent,
+        padding: TeXViewPadding.all(0),
+      ),
       child: TeXViewColumn(children: [
-        TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
-          'font-size:${controller
-              .getQuestionFontSize()}px; margin-bottom:16px;',),),
+        TeXViewDocument(
+          _effectiveHtml(question, controller),
+          style: TeXViewStyle.fromCSS(
+            'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
+          ),
+        ),
         ...question.options.asMap().entries.map((entry) {
           final index = entry.key;
           final option = entry.value;
-          final label = String.fromCharCode(65 + index); // A, B, C, D
+          final label = String.fromCharCode(65 + index);
           final isSelected = question.selectedAnswer == label;
           return TeXViewInkWell(
             id: 'option_$index',
             onTap: (_) => controller.selectAnswer(label),
             child: TeXViewDocument(
               '''
-      <div style="display:flex; align-items:flex-start; gap:12px;">
-        
-        <!-- LABEL CIRCLE -->
-        <div style="
-          width:24px;
-          height:24px;
-          border-radius:50%;
-          font-size:10px;
-          font-weight:700;
-          text-align:center;
-          line-height:24px;
-          color:${isSelected ? '#ffffff' : '#374151'};
-          background-color:${isSelected ? '#2563eb' : '#d1d5db'};
-          flex-shrink:0;
-        ">$label</div>
-
-        <!-- OPTION TEXT -->
-        <div style="
-          flex:1;
-          font-size:${controller.getOptionFontSize()}px;
-          font-weight:${isSelected ? '600' : '500'};
-        ">
-          $option
-        </div>
-
-      </div>
-      ''',
-              style: TeXViewStyle.fromCSS(
-                  '''
-        padding:12px;
-        margin-bottom:8px;
-        border-radius:8px;
-        cursor:pointer;
-        border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
-        background-color:${isSelected ? '#eff6ff' : 'transparent'};
-        transition: all 0.2s ease;
-        '''
-              ),
+<div style="display:flex; align-items:flex-start; gap:12px;">
+  <div style="
+    width:24px; height:24px; border-radius:50%;
+    font-size:10px; font-weight:700; text-align:center; line-height:24px;
+    color:${isSelected ? '#ffffff' : '#374151'};
+    background-color:${isSelected ? '#2563eb' : '#d1d5db'};
+    flex-shrink:0;
+  ">$label</div>
+  <div style="flex:1; font-size:${controller.getOptionFontSize()}px; font-weight:${isSelected ? '600' : '500'};">
+    $option
+  </div>
+</div>
+              ''',
+              style: TeXViewStyle.fromCSS('''
+padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
+border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
+background-color:${isSelected ? '#eff6ff' : 'transparent'};
+transition: all 0.2s ease;
+              '''),
             ),
           );
         }),
-      ],),);
-    // :  Column(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: question.options
-    //       .map((option) => _buildOption(
-    //     controller: controller,
-    //     label: String.fromCharCode(65 + question.options.indexOf(option)),
-    //     text: option,
-    //     isSelected: question.selectedAnswer == option,
-    //     onTap: () => controller.selectAnswer(option),
-    //   )).toList(),
-    // );
+      ]),
+    );
   }
 
 
   // MCQ - Multiple Answer
   Widget _buildMCQMultiple(Question question, TestPlayerController controller) {
     return TeXView(
+      loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
         backgroundColor: Colors.transparent,
         padding: TeXViewPadding.all(0),
       ),
-      child: TeXViewColumn(
-        children: [
-          TeXViewDocument(
-            _effectiveHtml(question, controller),
-            style: TeXViewStyle.fromCSS(
-              'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-            ),
+      child: TeXViewColumn(children: [
+        TeXViewDocument(
+          _effectiveHtml(question, controller),
+          style: TeXViewStyle.fromCSS(
+            'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
           ),
-          ...question.options.asMap().entries.map((entry) {
-            final index = entry.key;
-            final option = entry.value;
-            final label = String.fromCharCode(65 + index); // A, B, C, D
-            final isSelected = question.selectedAnswers?.contains(label) ?? false;
-
-            return TeXViewInkWell(
-              id: 'multi_$index',
-              onTap: (_) => controller.selectAnswer(label),
-              child: TeXViewDocument(
-                '''
+        ),
+        ...question.options.asMap().entries.map((entry) {
+          final index = entry.key;
+          final option = entry.value;
+          final label = String.fromCharCode(65 + index);
+          final isSelected =
+              question.selectedAnswers?.contains(label) ?? false;
+          return TeXViewInkWell(
+            id: 'multi_$index',
+            onTap: (_) => controller.selectAnswer(label),
+            child: TeXViewDocument(
+              '''
 <div style="display:flex; align-items:flex-start; gap:12px;">
   <div style="
     width:24px; height:24px; border-radius:6px;
@@ -182,19 +160,16 @@ class QuestionOptionsWidget extends StatelessWidget {
   </div>
   <div style="font-size:18px;">${isSelected ? '☑' : '☐'}</div>
 </div>
-''',
-                style: TeXViewStyle.fromCSS(
-                  '''
+              ''',
+              style: TeXViewStyle.fromCSS('''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
 border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
 background-color:${isSelected ? '#eff6ff' : 'transparent'};
-''',
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
+              '''),
+            ),
+          );
+        }),
+      ]),
     );
   }
 
@@ -202,118 +177,11 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
       Question question,
       TestPlayerController controller,
       ) {
-    final pairs = question.matchPairs;
-    if (pairs == null || pairs.isEmpty) {
-      return const Text('No match data available for this question.');
-    }
-
-    final rightOptions = pairs.first.rightOptions;
-    final rightTexts = pairs.first.rightTexts;
-
-    // Build all children for TeXViewColumn
-    final List<TeXViewWidget> children = [];
-
-    // 1. Question HTML (contains LaTeX) — includes passage if present
-    children.add(TeXViewDocument(
-      _effectiveHtml(question, controller),
-      style: TeXViewStyle.fromCSS(
-        'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-      ),
-    ));
-
-    // 2. Instruction
-    children.add(TeXViewDocument(
-      '''
-      <div style="
-        padding:10px; margin-bottom:12px;
-        background-color:rgba(79,70,229,0.1); border-radius:8px;
-        font-size:13px; font-weight:600; color:#4F46E5;
-      ">↔ Match each item on left to right</div>
-      ''',
-    ));
-
-    // 3. For each left item: label row + right option chips
-    for (final pair in pairs) {
-      final selectedRights = question.matchAnswers?[pair.left];
-
-      // Left label + text
-      final leftTextHtml = pair.leftText.isNotEmpty
-          ? '<span style="margin-left:10px; font-size:${controller.getOptionFontSize() - 1}px; font-weight:500; color:#1f2937;">${pair.leftText}</span>'
-          : '';
-
-      children.add(TeXViewDocument(
-        '''
-        <div style="
-          padding:8px 12px; margin-top:8px;
-          background-color:#f3f4f6; border-radius:8px 8px 0 0;
-          border:1px solid #d1d5db; border-bottom:none;
-          display:flex; align-items:center;
-        ">
-          <span style="
-            display:inline-block; padding:4px 12px;
-            background-color:rgba(79,70,229,0.15); border-radius:8px;
-            font-size:${controller.getOptionFontSize()}px;
-            font-weight:700; color:#4F46E5;
-          ">${pair.left}</span>
-          $leftTextHtml
-        </div>
-        ''',
-      ));
-
-      // Right option chips — each is its own TeXViewInkWell
-      for (int idx = 0; idx < rightOptions.length; idx++) {
-        final rightLabel = rightOptions[idx];
-        final rightText = idx < rightTexts.length ? rightTexts[idx] : '';
-        final isSelected = selectedRights?.contains(rightLabel) ?? false;
-        final bgColor = isSelected ? '#4F46E5' : '#f9fafb';
-        final textColor = isSelected ? '#ffffff' : '#1f2937';
-        final borderColor = isSelected ? '#4F46E5' : '#d1d5db';
-        final isLast = idx == rightOptions.length - 1;
-        final displayText = rightText.isNotEmpty
-            ? '$rightLabel : $rightText'
-            : rightLabel;
-
-        children.add(TeXViewInkWell(
-          id: 'match_${pair.left}_$rightLabel',
-          onTap: (id) {
-            final parts = id.split('_');
-            if (parts.length >= 3) {
-              controller.selectMatch(parts[1], parts[2]);
-            }
-          },
-          child: TeXViewDocument(
-            '''
-            <div style="
-              padding:10px 14px;
-              background-color:$bgColor;
-              border-left:1px solid #d1d5db;
-              border-right:1px solid #d1d5db;
-              border-bottom:1px solid $borderColor;
-              ${isLast ? 'border-radius:0 0 8px 8px; margin-bottom:4px;' : ''}
-              cursor:pointer;
-              display:flex; align-items:center; gap:10px;
-            ">
-              <span style="
-                display:inline-flex; align-items:center; justify-content:center;
-                width:26px; height:26px; border-radius:50%;
-                background-color:${isSelected ? '#ffffff33' : '#e5e7eb'};
-                color:$textColor; font-size:12px; font-weight:700;
-                flex-shrink:0;
-              ">$rightLabel</span>
-              ${rightText.isNotEmpty ? '<span style="font-size:${controller.getOptionFontSize() - 1}px; font-weight:${isSelected ? '600' : '500'}; color:$textColor;">$rightText</span>' : ''}
-            </div>
-            ''',
-          ),
-        ));
-      }
-    }
-
-    return TeXView(
-      style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
-        padding: TeXViewPadding.all(0),
-      ),
-      child: TeXViewColumn(children: children),
+    return _MAQView(
+      key: ValueKey('maq_${question.questionId}_${question.number}'),
+      question: question,
+      controller: controller,
+      effectiveHtml: _effectiveHtml(question, controller),
     );
   }
 
@@ -323,47 +191,11 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TeXView(child:  TeXViewColumn(
-            children: [
-              TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
-                'font-size:${controller
-                    .getQuestionFontSize()}px; margin-bottom:16px;',),),
-              // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
-              //   'font-size:${controller
-              //       .getQuestionFontSize()}px; margin-bottom:16px;',),),
-            ]
-        ),
-        // controller.isLatex(_effectiveHtml(question, controller)) ? TeXView(child:  TeXViewColumn(
-        //     children: [
-        //       TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
-        //         'font-size:${controller
-        //             .getQuestionFontSize()}px; margin-bottom:16px;',),),
-        //       // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
-        //       //   'font-size:${controller
-        //       //       .getQuestionFontSize()}px; margin-bottom:16px;',),),
-        //     ]
-        // ),) : Column(
-        //   children: [
-        //
-        //     Text(
-        //       _effectiveHtml(question, controller),
-        //       style: TextStyle(
-        //         fontSize: controller.getQuestionFontSize(),
-        //         height: 1.6,
-        //         color: AppColors.textPrimary,
-        //         fontWeight: FontWeight.w500,
-        //       ),
-        //     ),
-        //     SizedBox(height: 20,),
-        //     // Text(
-        //     //   'Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}',
-        //     //   style: const TextStyle(
-        //     //     fontSize: 12,
-        //     //     fontWeight: FontWeight.w600,
-        //     //     color: Color(0xFF10B981),
-        //     //   ),
-        //     // ),
-        //   ],
+        _CachedTeX(
+          key: ValueKey('num_q_${question.questionId}_${question.number}'),
+          html: _effectiveHtml(question, controller),
+          fontSize: controller.getQuestionFontSize(),
+          extraCss: 'margin-bottom:16px;',
         ),
         GetBuilder<TestPlayerController>(
           builder: (controller) {
@@ -458,17 +290,11 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TeXView(
-          style: const TeXViewStyle(
-            backgroundColor: Colors.transparent,
-            padding: TeXViewPadding.all(0),
-          ),
-          child: TeXViewDocument(
-            _effectiveHtml(question, controller),
-            style: TeXViewStyle.fromCSS(
-              'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-            ),
-          ),
+        _CachedTeX(
+          key: ValueKey('tf_q_${question.questionId}_${question.number}'),
+          html: _effectiveHtml(question, controller),
+          fontSize: controller.getQuestionFontSize(),
+          extraCss: 'margin-bottom:16px;',
         ),
         Row(
           children: [
@@ -579,17 +405,13 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            controller.isLatex(_effectiveHtml(question, controller)) ? TeXView(
-              child:  TeXViewColumn(
-                children: [
-                  TeXViewDocument(_effectiveHtml(question, controller), style: TeXViewStyle.fromCSS(
-                    'font-size:${controller
-                        .getQuestionFontSize()}px; margin-bottom:16px;',),),
-                  // TeXViewDocument("Enter numerical value${question.minRange != null ? " (Range: ${question.minRange} - ${question.maxRange})" : ""}", style: TeXViewStyle.fromCSS(
-                  //   'font-size:${controller
-                  //       .getQuestionFontSize()}px; margin-bottom:16px;',),),
-                ]
-            ),) : Column(
+            _CachedTeX(
+              key: ValueKey('txt_q_${question.questionId}_${question.number}'),
+              html: _effectiveHtml(question, controller),
+              fontSize: controller.getQuestionFontSize(),
+              extraCss: 'margin-bottom:16px;',
+            ),
+            if (false) Column(
               children: [
                 Text(
                   _effectiveHtml(question, controller),
@@ -666,17 +488,11 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TeXView(
-              style: const TeXViewStyle(
-                backgroundColor: Colors.transparent,
-                padding: TeXViewPadding.all(0),
-              ),
-              child: TeXViewDocument(
-                _effectiveHtml(question, controller),
-                style: TeXViewStyle.fromCSS(
-                  'font-size:${controller.getQuestionFontSize()}px; margin-bottom:16px;',
-                ),
-              ),
+            _CachedTeX(
+              key: ValueKey('subj_q_${question.questionId}_${question.number}'),
+              html: _effectiveHtml(question, controller),
+              fontSize: controller.getQuestionFontSize(),
+              extraCss: 'margin-bottom:16px;',
             ),
             Container(
               padding: const EdgeInsets.all(12),
@@ -804,6 +620,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
         String extraCss = '',
       }) {
     return TeXView(
+      loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
         backgroundColor: Colors.transparent,
         padding: TeXViewPadding.all(0),
@@ -857,11 +674,282 @@ $qHtml''';
 
 }
 
+/// Holds a TeXView in state and only rebuilds the underlying webview when
+/// the [html] or [fontSize] actually changes. This stops the webview from
+/// reloading (and visibly flickering) when the parent rebuilds for unrelated
+/// reasons — e.g. selecting an MCQ option, typing in a numerical answer.
+class _CachedTeX extends StatefulWidget {
+  final String html;
+  final double fontSize;
+  final String? extraCss;
+  const _CachedTeX({
+    super.key,
+    required this.html,
+    required this.fontSize,
+    this.extraCss,
+  });
+
+  @override
+  State<_CachedTeX> createState() => _CachedTeXState();
+}
+
+class _CachedTeXState extends State<_CachedTeX> {
+  late Widget _cached;
+
+  @override
+  void initState() {
+    super.initState();
+    _cached = _build();
+  }
+
+  @override
+  void didUpdateWidget(_CachedTeX old) {
+    super.didUpdateWidget(old);
+    if (old.html != widget.html ||
+        old.fontSize != widget.fontSize ||
+        old.extraCss != widget.extraCss) {
+      _cached = _build();
+    }
+  }
+
+  Widget _build() {
+    return TeXView(
+      loadingWidgetBuilder: (_) => const SizedBox.shrink(),
+      style: const TeXViewStyle(
+        backgroundColor: Colors.transparent,
+        padding: TeXViewPadding.all(0),
+      ),
+      child: TeXViewDocument(
+        widget.html,
+        style: TeXViewStyle.fromCSS(
+          'font-size:${widget.fontSize}px; ${widget.extraCss ?? ''}',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => _cached;
+}
+
 class _SingleDecimalFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     final text = newValue.text;
     if ('.'.allMatches(text).length > 1) return oldValue;
     return newValue;
+  }
+}
+
+/// Match-the-following view.
+/// The TeXView header is built once and held in state, so cell taps that change
+/// only the grid don't force the underlying webview to reload (avoids flicker).
+class _MAQView extends StatefulWidget {
+  final Question question;
+  final TestPlayerController controller;
+  final String effectiveHtml;
+  const _MAQView({
+    super.key,
+    required this.question,
+    required this.controller,
+    required this.effectiveHtml,
+  });
+
+  @override
+  State<_MAQView> createState() => _MAQViewState();
+}
+
+class _MAQViewState extends State<_MAQView> {
+  late Widget _teXHeader;
+  late List<MatchPair> _pairs;
+  late List<String> _rightOptions;
+  late List<String> _rightTexts;
+
+  bool _isEmptyText(String t) {
+    final stripped = t
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll('&nbsp;', '')
+        .trim();
+    return stripped.isEmpty;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildHeader();
+  }
+
+  void _rebuildHeader() {
+    final allPairs = widget.question.matchPairs ?? const <MatchPair>[];
+    _pairs = allPairs.where((p) => !_isEmptyText(p.leftText)).toList();
+    final rawOptions = _pairs.isNotEmpty ? _pairs.first.rightOptions : const <String>[];
+    final rawTexts = _pairs.isNotEmpty ? _pairs.first.rightTexts : const <String>[];
+    _rightOptions = [];
+    _rightTexts = [];
+    for (var i = 0; i < rawOptions.length; i++) {
+      final t = i < rawTexts.length ? rawTexts[i] : '';
+      if (_isEmptyText(t)) continue;
+      _rightOptions.add(rawOptions[i]);
+      _rightTexts.add(t);
+    }
+
+    final qFs = widget.controller.getQuestionFontSize();
+    final oFs = widget.controller.getOptionFontSize();
+
+    final leftItemsHtml = StringBuffer();
+    for (final pair in _pairs) {
+      leftItemsHtml.write('''
+        <div style="display:flex; align-items:center; margin-bottom:14px;">
+          <span style="font-weight:600; color:#1f2937; font-size:${oFs}px; margin-right:8px;">(${pair.left})</span>
+          <span style="font-size:${oFs}px; color:#1f2937;">${pair.leftText}</span>
+        </div>
+      ''');
+    }
+    final rightItemsHtml = StringBuffer();
+    for (int i = 0; i < _rightOptions.length; i++) {
+      final label = _rightOptions[i];
+      final text = i < _rightTexts.length ? _rightTexts[i] : '';
+      rightItemsHtml.write('''
+        <div style="display:flex; align-items:center; margin-bottom:14px;">
+          <span style="font-weight:600; color:#1f2937; font-size:${oFs}px; margin-right:8px;">($label)</span>
+          <span style="font-size:${oFs}px; color:#1f2937;">$text</span>
+        </div>
+      ''');
+    }
+
+    final headerHtml = '''
+${widget.effectiveHtml}
+<div style="display:flex; gap:24px; margin:12px 0 16px 0;">
+  <div style="flex:1;">$leftItemsHtml</div>
+  <div style="flex:1;">$rightItemsHtml</div>
+</div>
+<div style="height:1px; background:#d1d5db; margin-bottom:12px;"></div>
+<div style="
+  padding:8px 12px; margin-bottom:6px;
+  background:rgba(79,70,229,0.08); border-radius:6px;
+  font-size:12px; font-weight:600; color:#4F46E5;
+">Tap a cell to match — multiple selections per row are allowed.</div>
+''';
+
+    _teXHeader = TeXView(
+      loadingWidgetBuilder: (_) => const SizedBox.shrink(),
+      style: const TeXViewStyle(
+        backgroundColor: Colors.transparent,
+        padding: TeXViewPadding.all(0),
+      ),
+      child: TeXViewDocument(
+        headerHtml,
+        style: TeXViewStyle.fromCSS('font-size:${qFs}px;'),
+      ),
+    );
+  }
+
+  Widget _gridCell({
+    required Widget child,
+    Color bg = Colors.transparent,
+    VoidCallback? onTap,
+  }) {
+    final box = Container(
+      width: 44,
+      height: 40,
+      alignment: Alignment.center,
+      margin: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: child,
+    );
+    if (onTap == null) return box;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: box,
+    );
+  }
+
+  Widget _label(String text) => _gridCell(
+        bg: const Color(0xFFF3F4F6),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            color: Color(0xFF374151),
+          ),
+        ),
+      );
+
+  Widget _checkbox(bool isSelected) => Container(
+        width: 22,
+        height: 22,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF4F46E5)
+                : const Color(0xFF9CA3AF),
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: isSelected
+            ? const Icon(Icons.check, size: 16, color: Colors.white)
+            : null,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    if (_pairs.isEmpty) {
+      return const Text('No match data available for this question.');
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _teXHeader,
+        const SizedBox(height: 4),
+        // Only the grid rebuilds on selection changes — the cached TeXView above stays put.
+        GetBuilder<TestPlayerController>(
+          id: 'palette',
+          builder: (_) {
+            final headerRow = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _gridCell(child: const SizedBox.shrink()),
+                ..._rightOptions.map(_label),
+              ],
+            );
+            final dataRows = _pairs.map((pair) {
+              final selectedRights =
+                  widget.question.matchAnswers?[pair.left] ??
+                      const <String>[];
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _label(pair.left),
+                  ..._rightOptions.map((rightLabel) {
+                    final isSelected = selectedRights.contains(rightLabel);
+                    return _gridCell(
+                      onTap: () =>
+                          widget.controller.selectMatch(pair.left, rightLabel),
+                      child: _checkbox(isSelected),
+                    );
+                  }),
+                ],
+              );
+            }).toList();
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [headerRow, ...dataRows],
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 }

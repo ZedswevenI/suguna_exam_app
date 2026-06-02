@@ -3,7 +3,7 @@ class AppConstants {
   static const String baseUrl = 'http://143.110.182.180:3012/api/crm';
   // static const String baseUrl = 'http://143.110.191.245:3012/api/crm';
   // static const String baseUrl = 'http://172.20.10.5:3012/api/crm';
-  // static const String baseUrl = 'http://192.168.1.2:3012/api/crm';
+  // static const String baseUrl = 'http://192.168.1.136:3012/api/crm';
   static const Duration timeout = Duration(seconds: 30);
 
 
@@ -12,6 +12,7 @@ class AppConstants {
   static const double headerHeight = 64.0;
 
   static const double circleSize = 24.0;
+
 
   static const double circleSpacing = 8.0;
 
