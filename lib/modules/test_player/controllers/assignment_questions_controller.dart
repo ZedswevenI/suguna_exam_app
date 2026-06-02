@@ -126,7 +126,9 @@ class AssignmentQuestionsController extends GetxController {
           for (var pair in userAnswer.split(';')) {
             final parts = pair.split(':');
             if (parts.length == 2) {
-              map[parts[0]] = parts[1].split('').toList();
+              map[parts[0]] = parts[1].contains(',')
+                  ? parts[1].split(',').where((s) => s.isNotEmpty).toList()
+                  : parts[1].split('').toList();
             }
           }
           question.matchAnswers = map;

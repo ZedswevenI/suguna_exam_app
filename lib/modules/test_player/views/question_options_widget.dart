@@ -66,7 +66,7 @@ class QuestionOptionsWidget extends StatelessWidget {
         return _buildTextType(question);
       case QuestionType.subjective:
         return _buildSubjective(question,controller);
-      }
+    }
   }
 
   // MCQ - Single Answer
@@ -74,7 +74,7 @@ class QuestionOptionsWidget extends StatelessWidget {
     return TeXView(
       loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         padding: TeXViewPadding.all(0),
       ),
       child: TeXViewColumn(children: [
@@ -94,21 +94,34 @@ class QuestionOptionsWidget extends StatelessWidget {
             onTap: (_) => controller.selectAnswer(label),
             child: TeXViewDocument(
               '''
-<div style="display:flex; align-items:flex-start; gap:12px;">
+<style>
+  html, body {
+    background: #ffffff !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  *, *:active, *:focus, *:hover {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+  }
+</style>
+<div style="display:flex; align-items:flex-start; gap:12px; -webkit-tap-highlight-color:transparent;">
   <div style="
     width:24px; height:24px; border-radius:50%;
     font-size:10px; font-weight:700; text-align:center; line-height:24px;
     color:${isSelected ? '#ffffff' : '#374151'};
     background-color:${isSelected ? '#2563eb' : '#d1d5db'};
-    flex-shrink:0;
+    flex-shrink:0; -webkit-tap-highlight-color:transparent;
   ">$label</div>
-  <div style="flex:1; font-size:${controller.getOptionFontSize()}px; font-weight:${isSelected ? '600' : '500'};">
+  <div style="flex:1; font-size:${controller.getOptionFontSize()}px; font-weight:${isSelected ? '600' : '500'}; -webkit-tap-highlight-color:transparent;">
     $option
   </div>
 </div>
               ''',
               style: TeXViewStyle.fromCSS('''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
+-webkit-tap-highlight-color: transparent;
 border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
 background-color:${isSelected ? '#eff6ff' : 'transparent'};
 transition: all 0.2s ease;
@@ -126,7 +139,7 @@ transition: all 0.2s ease;
     return TeXView(
       loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         padding: TeXViewPadding.all(0),
       ),
       child: TeXViewColumn(children: [
@@ -147,22 +160,44 @@ transition: all 0.2s ease;
             onTap: (_) => controller.selectAnswer(label),
             child: TeXViewDocument(
               '''
-<div style="display:flex; align-items:flex-start; gap:12px;">
+<style>
+  html, body {
+    background: #ffffff !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  *, *:active, *:focus, *:hover {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+  }
+</style>
+<div style="display:flex; align-items:flex-start; gap:12px; -webkit-tap-highlight-color:transparent;">
   <div style="
     width:24px; height:24px; border-radius:6px;
     font-size:10px; font-weight:700; flex-shrink:0;
     text-align:center; line-height:24px;
     color:${isSelected ? '#ffffff' : '#374151'};
     background-color:${isSelected ? '#2563eb' : '#d1d5db'};
+    -webkit-tap-highlight-color:transparent;
   ">$label</div>
   <div style="flex:1; font-size:${controller.getOptionFontSize()}px; font-weight:${isSelected ? '600' : '500'};">
     $option
   </div>
-  <div style="font-size:18px;">${isSelected ? '☑' : '☐'}</div>
+  <div style="
+    width:20px; height:20px;
+    border:2px solid ${isSelected ? '#2563eb' : '#9ca3af'};
+    border-radius:4px;
+    background-color:${isSelected ? '#2563eb' : '#ffffff'};
+    display:inline-block; position:relative; flex-shrink:0;
+  ">
+    ${isSelected ? '<div style="position:absolute; left:4px; top:0; width:6px; height:11px; border:solid #ffffff; border-width:0 2px 2px 0; transform:rotate(45deg);"></div>' : ''}
+  </div>
 </div>
               ''',
               style: TeXViewStyle.fromCSS('''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
+-webkit-tap-highlight-color: transparent;
 border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
 background-color:${isSelected ? '#eff6ff' : 'transparent'};
               '''),
@@ -622,7 +657,7 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
     return TeXView(
       loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         padding: TeXViewPadding.all(0),
       ),
       child: TeXViewColumn(
@@ -716,7 +751,7 @@ class _CachedTeXState extends State<_CachedTeX> {
     return TeXView(
       loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         padding: TeXViewPadding.all(0),
       ),
       child: TeXViewDocument(
@@ -835,7 +870,7 @@ ${widget.effectiveHtml}
     _teXHeader = TeXView(
       loadingWidgetBuilder: (_) => const SizedBox.shrink(),
       style: const TeXViewStyle(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         padding: TeXViewPadding.all(0),
       ),
       child: TeXViewDocument(
@@ -870,35 +905,35 @@ ${widget.effectiveHtml}
   }
 
   Widget _label(String text) => _gridCell(
-        bg: const Color(0xFFF3F4F6),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
-            color: Color(0xFF374151),
-          ),
-        ),
-      );
+    bg: const Color(0xFFF3F4F6),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 13,
+        color: Color(0xFF374151),
+      ),
+    ),
+  );
 
   Widget _checkbox(bool isSelected) => Container(
-        width: 22,
-        height: 22,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFF4F46E5)
-                : const Color(0xFF9CA3AF),
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: isSelected
-            ? const Icon(Icons.check, size: 16, color: Colors.white)
-            : null,
-      );
+    width: 22,
+    height: 22,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
+      border: Border.all(
+        color: isSelected
+            ? const Color(0xFF4F46E5)
+            : const Color(0xFF9CA3AF),
+        width: 1.5,
+      ),
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: isSelected
+        ? const Icon(Icons.check, size: 16, color: Colors.white)
+        : null,
+  );
 
   @override
   Widget build(BuildContext context) {

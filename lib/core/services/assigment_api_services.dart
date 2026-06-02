@@ -195,6 +195,22 @@ class AssignmentApiServices extends ApiService {
     }
   }
 
+  Future<dynamic> getExamAnalysis(String entiId, String examId, dynamic admissionNo) async {
+    try {
+      final response = await post(
+        '/exam/result/my-result/analysis',
+        body: {
+          "entiId": entiId,
+          "examId": examId,
+          "admissionNo": admissionNo,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<dynamic> getExamResultWithQuestions(String entiId, String examId, String admissionNo) async {
     try {
       final response = await post(

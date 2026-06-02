@@ -183,7 +183,9 @@ class TestPlayerController extends GetxController {
           for (var pair in userAnswer.split(';')) {
             final parts = pair.split(':');
             if (parts.length == 2) {
-              map[parts[0]] = parts[1].split('').toList();
+              map[parts[0]] = parts[1].contains(',')
+                  ? parts[1].split(',').where((s) => s.isNotEmpty).toList()
+                  : parts[1].split('').toList();
             }
           }
           question.matchAnswers = map;
@@ -765,9 +767,15 @@ class TestPlayerController extends GetxController {
     final question = currentQuestion;
     if (question.type == QuestionType.numerical ||
         question.type == QuestionType.integer) {
-      numericalController.text = question.numericalAnswer != null
-          ? question.numericalAnswer.toString()
-          : '';
+      final n = question.numericalAnswer;
+      if (n == null) {
+        numericalController.text = '';
+      } else if (question.type == QuestionType.integer ||
+          n.truncateToDouble() == n) {
+        numericalController.text = n.toInt().toString();
+      } else {
+        numericalController.text = n.toString();
+      }
     } else if (question.type == QuestionType.textType ||
                question.type == QuestionType.subjective) {
       numericalController.text = question.textAnswer ?? '';
@@ -1285,7 +1293,14 @@ class TestPlayerController extends GetxController {
               colorText: Colors.white,
               duration: const Duration(seconds: 3),
             );
-            Get.offAllNamed(AppRoutes.discussion);
+            Get.offAllNamed(
+              AppRoutes.examAnalysis,
+              arguments: {
+                'examId': Session.instance.currentTestId.replaceAll('exam_', ''),
+                'examCode': examCode,
+                'examName': (selectedQuestions['examName'] ?? '').toString(),
+              },
+            );
             return;
           } else {
             Get.back(); // close loader
@@ -1546,8 +1561,9 @@ class TestPlayerController extends GetxController {
   /// Get user answer in format suitable for API submission
   String _getUserAnswerForSubmission(Question question) {
     switch (question.type) {
-      case QuestionType.mcqSingle:
       case QuestionType.trueFalse:
+        return (question.selectedAnswer ?? '').toLowerCase();
+      case QuestionType.mcqSingle:
       case QuestionType.singleDropdown:
         return question.selectedAnswer ?? '';
 
@@ -1556,6 +1572,11 @@ class TestPlayerController extends GetxController {
         return question.selectedAnswers?.join(';') ?? '';
 
       case QuestionType.integer:
+        final n = question.numericalAnswer;
+        if (n == null) return '';
+        return n.truncateToDouble() == n
+            ? n.toInt().toString()
+            : n.toString();
       case QuestionType.numerical:
         return question.numericalAnswer?.toString() ?? '';
 
@@ -1565,7 +1586,7 @@ class TestPlayerController extends GetxController {
 
       case QuestionType.matchTheFollowing:
         return question.matchAnswers?.entries
-                .map((e) => '${e.key}:${e.value.join('')}')
+                .map((e) => '${e.key}:${e.value.join(',')}')
                 .join(';') ??
             '';
     }

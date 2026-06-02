@@ -879,7 +879,7 @@ class ExamResultView extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // Donut
               Column(
@@ -1199,17 +1199,15 @@ class ExamResultView extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    isSkipped
-                        ? '0'
-                        : (isCorrect
-                            ? '+${marks.toStringAsFixed(1)}'
-                            : '-${(answer['negativeMarks'] as num?)?.toDouble().toStringAsFixed(1) ?? '0'}'),
+                    marks > 0
+                        ? '+${marks.toStringAsFixed(1)}'
+                        : marks.toStringAsFixed(1),
                     style: TextStyle(
-                      color: isSkipped
-                          ? Colors.white54
-                          : isCorrect
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFEF4444),
+                      color: marks > 0
+                          ? const Color(0xFF10B981)
+                          : marks < 0
+                              ? const Color(0xFFEF4444)
+                              : Colors.white54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -210,7 +210,23 @@ class ExamQuestionReviewView extends StatelessWidget {
     final questionType = answer['questionType'] ?? '';
     final questionHtml = answer['questionHtml'] ?? '';
     final options = List<Map<String, dynamic>>.from(answer['questionOptions'] ?? []);
-    final solutionHtml = answer['solutionHtml'];
+    // Backend may use any of: solutionHtml, solutionText, solution, or nest it
+    // under a `question` object — accept all common shapes.
+    dynamic _firstNonEmpty(List<dynamic> values) {
+      for (final v in values) {
+        if (v != null && v.toString().trim().isNotEmpty) return v;
+      }
+      return null;
+    }
+
+    final solutionHtml = _firstNonEmpty([
+      answer['solutionHtml'],
+      answer['solutionText'],
+      answer['solution'],
+      (answer['question'] is Map) ? answer['question']['solutionHtml'] : null,
+      (answer['question'] is Map) ? answer['question']['solutionText'] : null,
+      (answer['question'] is Map) ? answer['question']['solution'] : null,
+    ]);
     final userAnswer = answer['answerRaw']?.toString() ?? '';
 
     String statusText;

@@ -12,5 +12,6 @@ class AppRoutes {
   static const String discussion = '/discussion';
   static const String reset = '/reset';
   static const String examResult = '/exam-result';
+  static const String examAnalysis = '/exam-analysis';
   static const String examQuestionReview = '/exam-question-review';
 }

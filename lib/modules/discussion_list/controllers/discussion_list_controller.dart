@@ -376,16 +376,16 @@ class DiscussionListController extends GetxController {
       return;
     }
 
-    // If already attempted, restrict download
+    // If already attempted but result not yet published — show analysis screen.
     if (exam.isAttempted) {
-      Get.snackbar(
-        'Already Attempted',
-        'You have already attempted this exam.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFD97706),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+      Get.toNamed(AppRoutes.examAnalysis, arguments: {
+        'examId': exam.examId,
+        'examName': exam.examName,
+        'examCode': exam.examCode,
+        'totalMarks': exam.totalMarks,
+        'totalQuestions': exam.totalQuestions,
+        'duration': exam.duration,
+      });
       return;
     }
 
@@ -394,13 +394,11 @@ class DiscussionListController extends GetxController {
     final cached = _storage.read(storageKey);
     if (cached != null) {
       if (cached['completed'] == true) {
-        Get.snackbar(
-          'Completed',
-          'You have already completed this exam.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF059669),
-          colorText: Colors.white,
-        );
+        Get.toNamed(AppRoutes.examAnalysis, arguments: {
+          'examId': exam.examId,
+          'examName': exam.examName,
+          'examCode': exam.examCode,
+        });
         return;
       }
       // Resume cached exam

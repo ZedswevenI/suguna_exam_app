@@ -74,28 +74,36 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
       builder: (controller) {
         return PopScope(
           canPop: false,
-          child: Scaffold(
-            backgroundColor: const Color(0xFFF5F7FA),
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _buildTopBar(controller),
-                  Obx(() {
-                    return Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: IgnorePointer(
-                              ignoring: controller.isTimerCompleted,
-                              child: _buildQuestionPanel(controller),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Scaffold(
+              backgroundColor: const Color(0xFFF5F7FA),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildTopBar(controller),
+                    Obx(() {
+                      return Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: IgnorePointer(
+                                ignoring: controller.isTimerCompleted,
+                                child: _buildQuestionPanel(controller),
+                              ),
                             ),
-                          ),
-                          _buildQuestionPalette(controller),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
+                            _buildQuestionPalette(controller),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
           ),

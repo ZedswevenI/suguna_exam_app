@@ -56,9 +56,23 @@ class ExamResultController extends GetxController {
             answer['questionHtml'] = await _replaceImagesWithBase64(
                 _stripLatexSpans(answer['questionHtml'] as String));
           }
-          if (answer['solutionHtml'] is String) {
-            answer['solutionHtml'] = await _replaceImagesWithBase64(
-                _stripLatexSpans(answer['solutionHtml'] as String));
+          // Process whichever field carries the solution HTML.
+          for (final key in const ['solutionHtml', 'solutionText', 'solution']) {
+            if (answer[key] is String && (answer[key] as String).isNotEmpty) {
+              answer[key] = await _replaceImagesWithBase64(
+                  _stripLatexSpans(answer[key] as String));
+            }
+          }
+          // Some payloads nest it under `question`.
+          if (answer['question'] is Map) {
+            final q = Map<String, dynamic>.from(answer['question'] as Map);
+            for (final key in const ['solutionHtml', 'solutionText', 'solution']) {
+              if (q[key] is String && (q[key] as String).isNotEmpty) {
+                q[key] = await _replaceImagesWithBase64(
+                    _stripLatexSpans(q[key] as String));
+              }
+            }
+            answer['question'] = q;
           }
           if (answer['questionOptions'] is List) {
             final opts = <Map<String, dynamic>>[];
@@ -449,17 +463,40 @@ class ExamResultController extends GetxController {
     return sectionResults.map((s) => _sectionDisplayName(s)).toList();
   }
 
-  String? get selectedSectionId {
-    if (selectedSectionIndex.value < sectionResults.length) {
-      return sectionResults[selectedSectionIndex.value]['subjectId']?['_id'] as String?;
+  /// Returns every identifier the currently-selected section might match an
+  /// answer on — backend payloads vary between `sectionId`, `subjectId._id`,
+  /// and a plain id string.
+  Set<String> get selectedSectionMatchKeys {
+    if (selectedSectionIndex.value >= sectionResults.length) return {};
+    final section = sectionResults[selectedSectionIndex.value];
+    final keys = <String>{};
+    final sectionId = section['sectionId'];
+    if (sectionId != null) keys.add(sectionId.toString());
+    final subjectId = section['subjectId'];
+    if (subjectId is Map) {
+      final id = subjectId['_id'];
+      if (id != null) keys.add(id.toString());
+    } else if (subjectId is String) {
+      keys.add(subjectId);
     }
-    return null;
+    keys.removeWhere((k) => k.isEmpty);
+    return keys;
+  }
+
+  String? get selectedSectionId {
+    final keys = selectedSectionMatchKeys;
+    return keys.isEmpty ? null : keys.first;
   }
 
   List<Map<String, dynamic>> get filteredAnswers {
-    final sId = selectedSectionId;
-    if (sId == null) return answers;
-    return answers.where((a) => a['sectionId'] == sId).toList();
+    final keys = selectedSectionMatchKeys;
+    if (keys.isEmpty) return answers;
+    final filtered = answers
+        .where((a) => keys.contains((a['sectionId'] ?? '').toString()))
+        .toList();
+    // If nothing matches, fall back to showing all answers rather than an
+    // empty "No questions in this section" screen.
+    return filtered.isEmpty ? answers : filtered;
   }
 
   void selectSection(int index) {

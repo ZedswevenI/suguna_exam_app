@@ -25,6 +25,8 @@ import 'package:suguna_exam_app/modules/reset/views/reset_view.dart';
 import 'package:suguna_exam_app/modules/exam_result/bindings/exam_result_binding.dart';
 import 'package:suguna_exam_app/modules/exam_result/views/exam_result_view.dart';
 import 'package:suguna_exam_app/modules/exam_result/views/exam_question_review_view.dart';
+import 'package:suguna_exam_app/modules/exam_result/bindings/exam_analysis_binding.dart';
+import 'package:suguna_exam_app/modules/exam_result/views/exam_analysis_view.dart';
 
 import '../../modules/discussion_list/views/download_test.dart';
 
@@ -98,6 +100,11 @@ class RouteConfig {
       GetPage(
         name: AppRoutes.examQuestionReview,
         page: () => const ExamQuestionReviewView(),
+      ),
+      GetPage(
+        name: AppRoutes.examAnalysis,
+        page: () => const ExamAnalysisView(),
+        binding: ExamAnalysisBinding(),
       ),
     ];
   }
