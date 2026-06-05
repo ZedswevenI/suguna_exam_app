@@ -87,11 +87,29 @@ class ExamResultView extends StatelessWidget {
                           children: [
                             _buildScoreOverview(controller),
                             const SizedBox(height: 24),
-                            _buildPerformanceReport1(controller),
+                            // Performance Report 1 (left) + marks donut (right)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildPerformanceReport1(controller),
+                                ),
+                                const SizedBox(width: 16),
+                                _buildMarksDonut(controller),
+                              ],
+                            ),
                             const SizedBox(height: 24),
-                            _buildSectionPerformance(controller),
-                            const SizedBox(height: 24),
-                            _buildPerformanceChart(controller),
+                            // Section-wise Performance (left) + questions donut (right)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildSectionPerformance(controller),
+                                ),
+                                const SizedBox(width: 16),
+                                _buildQuestionsDonut(controller),
+                              ],
+                            ),
                             const SizedBox(height: 24),
                             _buildKeyMetrics(controller),
                             const SizedBox(height: 24),
@@ -845,6 +863,178 @@ class ExamResultView extends StatelessWidget {
   // ============================================================
   // PERFORMANCE CHART
   // ============================================================
+  // ─── Marks donut card (right of Performance Report 1) ────────────────────
+  // Donut is split per subject by each subject's positive score.
+  Widget _buildMarksDonut(ExamResultController controller) {
+    final report = controller.getPerformanceReport();
+    final subjects = (report['subjects'] as List<Map<String, dynamic>>?) ?? [];
+    final positive = (report['positiveMarks'] as double?) ?? 0;
+    final negative = (report['negativeMarks'] as double?) ?? 0;
+    final totalMarks = (report['totalMarks'] as double?) ?? 0;
+    final obtained = positive - negative;
+    final pct = totalMarks > 0 ? (obtained / totalMarks * 100) : 0.0;
+
+    // Per subject: green arc (positive) + red arc (negative). Subject identity
+    // is conveyed through the legend list and arc labels around the donut, not
+    // through arc color — only green/red are used.
+    const correctColor = Color(0xFF4CAF50);
+    const wrongColor = Color(0xFFE53935);
+
+    final slices = <({double value, Color color, String label})>[];
+    for (final s in subjects) {
+      final pos = (s['positiveMarks'] as num?)?.toDouble() ?? 0;
+      final neg = (s['negativeMarks'] as num?)?.toDouble() ?? 0;
+      final name = s['subjectName']?.toString() ?? '—';
+      if (pos > 0) slices.add((value: pos, color: correctColor, label: name));
+      if (neg > 0) slices.add((value: neg, color: wrongColor, label: name));
+    }
+
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Marks (by Subject)',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(200, 200),
+                  painter: _MarksDonutPainter(slices: slices),
+                ),
+                Text(
+                  '${pct.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    color: obtained >= 0
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFE53935),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildLegendItem('Correct', const Color(0xFF4CAF50)),
+              _buildLegendItem('Wrong', const Color(0xFFE53935)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Questions donut card (right of Section-wise Performance) ────────────
+  Widget _buildQuestionsDonut(ExamResultController controller) {
+    final sections = controller.getSectionReport();
+    final stats = controller.getOverallStats();
+    final totalCorrect = stats['correct'] as int;
+    final totalQs = stats['total'] as int;
+    final pct = totalQs > 0 ? (totalCorrect / totalQs * 100) : 0.0;
+
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Questions',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: 200,
+            height: 200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: const Size(200, 200),
+                  painter: _SectionDonutPainter(sections: sections),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${pct.toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF4CAF50),
+                      ),
+                    ),
+                    Text(
+                      '$totalCorrect / $totalQs',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildLegendItem('Correct', const Color(0xFF4CAF50)),
+              _buildLegendItem('Wrong', const Color(0xFFE53935)),
+              _buildLegendItem('Skipped', const Color(0xFFFFA726)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPerformanceChart(ExamResultController controller) {
     final sections = controller.getSectionReport();
     final stats = controller.getOverallStats();
@@ -1244,6 +1434,94 @@ class ExamResultView extends StatelessWidget {
     if (percentage >= 60) return const Color(0xFFF59E0B);
     return const Color(0xFFEF4444);
   }
+}
+
+// ============================================================
+// DONUT PAINTER for marks split per subject
+// ============================================================
+class _MarksDonutPainter extends CustomPainter {
+  /// Each slice: value, arc color, and an optional subject label drawn at the
+  /// arc's midpoint (positioned outside the ring).
+  final List<({double value, Color color, String label})> slices;
+
+  _MarksDonutPainter({required this.slices});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final strokeWidth = size.width * 0.18;
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
+
+    final base = slices.fold<double>(0, (s, e) => s + e.value);
+    if (base <= 0) {
+      canvas.drawArc(
+        rect,
+        0,
+        2 * math.pi,
+        false,
+        Paint()
+          ..color = Colors.grey.shade200
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth,
+      );
+      return;
+    }
+
+    // Track which subjects we've already labelled so we don't double-label
+    // a subject that has both a positive and a negative slice.
+    final labeled = <String>{};
+
+    double startAngle = -math.pi / 2;
+    for (final slice in slices) {
+      if (slice.value <= 0) continue;
+      final angle = (slice.value / base) * 2 * math.pi;
+      canvas.drawArc(
+        rect,
+        startAngle,
+        angle,
+        false,
+        Paint()
+          ..color = slice.color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth,
+      );
+
+      // Label the subject once, near the centre of its first arc.
+      if (slice.label.isNotEmpty && !labeled.contains(slice.label)) {
+        labeled.add(slice.label);
+        final midAngle = startAngle + angle / 2;
+        // Place label slightly outside the ring.
+        final labelRadius = radius - strokeWidth / 2;
+        final lx = center.dx + labelRadius * math.cos(midAngle);
+        final ly = center.dy + labelRadius * math.sin(midAngle);
+        final tp = TextPainter(
+          text: TextSpan(
+            text: slice.label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+        )..layout();
+        tp.paint(
+          canvas,
+          Offset(lx - tp.width / 2, ly - tp.height / 2),
+        );
+      }
+
+      startAngle += angle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // ============================================================
