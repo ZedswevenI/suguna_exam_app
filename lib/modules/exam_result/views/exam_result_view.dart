@@ -353,7 +353,7 @@ class ExamResultView extends StatelessWidget {
     final positiveMarks = report['positiveMarks'] as double;
     final negativeMarks = report['negativeMarks'] as double;
     final totalScore = report['totalScore'] as double;
-
+    final obtainedMarks = report['obtainedMarks'] as double;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -388,12 +388,13 @@ class ExamResultView extends StatelessWidget {
                 final sPos = subject['positiveMarks'] as double;
                 final sNeg = subject['negativeMarks'] as double;
                 final sTotal = subject['totalMarks'] as double;
+                final sObtained = subject['obtainedMarks'] as double;
 
                 return Column(
                   children: [
                     _buildReport1Row(
                       name,
-                      '${score.toStringAsFixed(1)} / ${sTotal.toStringAsFixed(1)}',
+                      '${sObtained.toStringAsFixed(1)} / ${sTotal.toStringAsFixed(1)}',
                       sCorrect.toString(),
                       '+${sPos.toStringAsFixed(1)}',
                       sWrong.toString(),
@@ -410,7 +411,7 @@ class ExamResultView extends StatelessWidget {
               // TOTAL ROW
               _buildReport1Row(
                 'TOTAL',
-                '${totalScore.toStringAsFixed(1)} / ${totalMarks.toStringAsFixed(1)}',
+                '${obtainedMarks.toStringAsFixed(1)} / ${totalMarks.toStringAsFixed(1)}',
                 correct.toString(),
                 '+${positiveMarks.toStringAsFixed(1)}',
                 wrong.toString(),
@@ -1294,6 +1295,10 @@ class ExamResultView extends StatelessWidget {
                           Text('Type', style: TextStyle(color: Colors.white)))),
               Expanded(
                   flex: 2,
+                  child: Text('Partial',
+                      style: TextStyle(color: Colors.white))),
+              Expanded(
+                  flex: 2,
                   child: Text('You Marked',
                       style: TextStyle(color: Colors.white))),
               Expanded(
@@ -1324,7 +1329,8 @@ class ExamResultView extends StatelessWidget {
               controller.getSectionName(answer['sectionId'] ?? '');
           final timeTakenMs = (answer['timeTaken'] as num?)?.toInt() ?? 0;
           final timeTakenSec = timeTakenMs ~/ 1000;
-
+          final partiallyMarked = answer['hasPartialMarking'] ?? '';
+          print("Partially marked ${partiallyMarked}");
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: const BoxDecoration(
@@ -1363,6 +1369,16 @@ class ExamResultView extends StatelessWidget {
                       style: const TextStyle(color: Colors.white70),
                     ),
                   ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    partiallyMarked.toString(),
+                    style: const TextStyle(
+                      color: Color(0xFF00D4FF),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ).marginOnly(left: 8),
                 ),
                 Expanded(
                   flex: 2,

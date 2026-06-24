@@ -149,6 +149,10 @@ class DiscussionListController extends GetxController {
       // Download and convert images to base64
       final processedQuestions = await _processExamQuestionImages(allQuestions);
 
+      // Process images inside instructions HTML too (so they're available
+      // offline in the instructions screen).
+      final instructions = await _processInstructionImages(data['instructions']);
+
       // Build stored exam data (same structure as assignment storage)
       final examData = {
         'examId': data['examId'],
@@ -160,7 +164,7 @@ class DiscussionListController extends GetxController {
         'startTime': data['startTime'],
         'endTime': data['endTime'],
         'calculatorType': data['calculatorType'],
-        'instructions': data['instructions'],
+        'instructions': instructions,
         'questions': processedQuestions,
         'sections': sections,
         'completed': false,
@@ -295,6 +299,18 @@ class DiscussionListController extends GetxController {
       }
     }
     return html;
+  }
+
+  /// Downloads images in the instructions HTML so they render offline.
+  Future<dynamic> _processInstructionImages(dynamic instructions) async {
+    if (instructions is! Map) return instructions;
+    final map = Map<String, dynamic>.from(instructions);
+    for (final key in const ['contentHtml', 'content', 'html']) {
+      if (map[key] is String && (map[key] as String).isNotEmpty) {
+        map[key] = await _replaceImagesWithBase64(map[key] as String);
+      }
+    }
+    return map;
   }
 
   Future<List<dynamic>> _processExamQuestionImages(List<dynamic> questions) async {

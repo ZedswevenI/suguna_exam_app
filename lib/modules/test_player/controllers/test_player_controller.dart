@@ -1252,25 +1252,29 @@ class TestPlayerController extends GetxController {
     );
   }
 
-  void clearData() {
-    unlockScreen();
+  Future<void> clearData() async {
     _timer?.cancel();
     _stopBlinking();
     isTestCompleted.value = true;
     reviewIndex.value = 0;
+    // Wait for the native side to actually exit lock-task mode before
+    // navigation — otherwise an MDM-managed kiosk lock + a route change
+    // racing each other can force-close the app.
+    await unlockScreen();
   }
+
+  /// True while [finalCompleteTest] is awaiting the submit API. Bind to it
+  /// from the view to show an inline overlay instead of using Get.dialog,
+  /// which can crash the app under MDM kiosk lock-task mode.
+  final isSubmitting = false.obs;
 
   /// Complete test and show results
   void finalCompleteTest() async {
 
-    clearData();
+    await clearData();
 
     if (isExamMode) {
-      // Submit exam to server
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
-      );
+      isSubmitting.value = true;
       try {
         final examPayload = _prepareExamSubmission();
         final connectivityResult = await NetworkService.hasInternet();
@@ -1284,7 +1288,21 @@ class TestPlayerController extends GetxController {
               "timestamp": DateTime.now().toIso8601String(),
             });
             storage.removeByKey('active_exam_id');
-            Get.back(); // close loader
+            isSubmitting.value = false;
+            final analysisArgs = <String, dynamic>{
+              'examId':
+                  Session.instance.currentTestId.replaceAll('exam_', ''),
+              'examCode': examCode,
+              'examName':
+                  (selectedQuestions['examName'] ?? '').toString(),
+            };
+            // Yield a frame so the submitting overlay disappears before the
+            // route is torn down — avoids overlay/route teardown race under MDM.
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+            await Get.offAllNamed(
+              AppRoutes.examAnalysis,
+              arguments: analysisArgs,
+            );
             Get.snackbar(
               'Success',
               'Your exam has been submitted successfully, Your result will be published soon...',
@@ -1293,17 +1311,9 @@ class TestPlayerController extends GetxController {
               colorText: Colors.white,
               duration: const Duration(seconds: 3),
             );
-            Get.offAllNamed(
-              AppRoutes.examAnalysis,
-              arguments: {
-                'examId': Session.instance.currentTestId.replaceAll('exam_', ''),
-                'examCode': examCode,
-                'examName': (selectedQuestions['examName'] ?? '').toString(),
-              },
-            );
             return;
           } else {
-            Get.back(); // close loader
+            isSubmitting.value = false;
             final msg = response is Exception
                 ? response.toString()
                 : (response['message'] ?? 'Submission failed');
@@ -1314,7 +1324,7 @@ class TestPlayerController extends GetxController {
             );
           }
         } else {
-          Get.back(); // close loader
+          isSubmitting.value = false;
           // Save locally for later sync
           storage.save(Session.instance.currentTestId, {
             "testJson": selectedQuestions,
@@ -1323,6 +1333,8 @@ class TestPlayerController extends GetxController {
             "pendingSync": true,
             "timestamp": DateTime.now().toIso8601String(),
           });
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          await Get.offAllNamed(AppRoutes.discussion);
           Get.snackbar(
             'Offline',
             'Exam saved locally. It will be submitted when you are online.',
@@ -1331,10 +1343,9 @@ class TestPlayerController extends GetxController {
             colorText: Colors.white,
             duration: const Duration(seconds: 3),
           );
-          Get.offAllNamed(AppRoutes.discussion);
         }
       } catch (e) {
-        Get.back(); // close loader
+        isSubmitting.value = false;
         Get.snackbar('Error', 'Failed to submit exam: $e',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: const Color(0xFFEF4444),

@@ -14,7 +14,7 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "exam_lock"
     private var isLockEnabled = false
     private val handler = Handler(Looper.getMainLooper())
-    private val lockCheckInterval = 2000L // Check every 2 seconds
+    private val lockCheckInterval = 1500L // Check every 2 seconds
 
     private val lockMonitor = object : Runnable {
         override fun run() {
@@ -40,13 +40,19 @@ class MainActivity : FlutterActivity() {
                     "startLock" -> {
                         isLockEnabled = true
                         // Block screenshots
-                        window.setFlags(
-                            WindowManager.LayoutParams.FLAG_SECURE,
-                            WindowManager.LayoutParams.FLAG_SECURE
-                        )
+                        try {
+                            window.setFlags(
+                                WindowManager.LayoutParams.FLAG_SECURE,
+                                WindowManager.LayoutParams.FLAG_SECURE
+                            )
+                        } catch (_: Exception) {}
                         // Keep screen awake during exam (prevent auto-lock)
-                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        startLockTask()
+                        try {
+                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        } catch (_: Exception) {}
+                        try {
+                            startLockTask()
+                        } catch (_: Exception) {}
                         handler.removeCallbacks(lockMonitor)
                         handler.postDelayed(lockMonitor, lockCheckInterval)
                         result.success(true)
@@ -55,10 +61,20 @@ class MainActivity : FlutterActivity() {
                         isLockEnabled = false
                         handler.removeCallbacks(lockMonitor)
                         // Remove screenshot block
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                        try {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                        } catch (_: Exception) {}
                         // Release wake lock
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                        stopLockTask()
+                        try {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        } catch (_: Exception) {}
+                        // stopLockTask() throws IllegalStateException if the
+                        // app is not currently in lock-task mode (e.g. an MDM
+                        // policy already exited it). Swallow it so the Flutter
+                        // side can continue to navigate.
+                        try {
+                            stopLockTask()
+                        } catch (_: Exception) {}
                         result.success(true)
                     }
                     else -> result.notImplemented()

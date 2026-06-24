@@ -13,7 +13,9 @@ class ExamAnalysisView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ExamAnalysisController>(
-      init: ExamAnalysisController(),
+      // Controller is created by ExamAnalysisBinding registered on the route.
+      // Don't double-init here — under MDM kiosk we've seen the dual
+      // controller creation race with the test player teardown and crash.
       builder: (controller) {
         return PopScope(
           canPop: false,

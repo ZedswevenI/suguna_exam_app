@@ -2,14 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:suguna_exam_app/data/services/sessions.dart';
-import '../../../core/resources/app_strings.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/assigment_api_services.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../data/services/store_service.dart';
 
 class LoginController extends GetxController {
-  final usernameController = TextEditingController(text: kDebugMode ?  '9020642590055' : "");
+  final usernameController = TextEditingController(text: kDebugMode ? '9020642590004' : "");
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -26,7 +25,6 @@ class LoginController extends GetxController {
     super.onReady();
   }
 
-
   @override
   void onClose() {
     usernameController.dispose();
@@ -42,7 +40,7 @@ class LoginController extends GetxController {
     isLoading.value = true;
     try {
       final response = await _apiService.login(usernameController.text);
-      if(response['status']) {
+      if (response['status']) {
         Session.instance.currentUser = response;
         _storage.saveUser(response);
         Get.offAllNamed(AppRoutes.discussion, arguments: response);
@@ -60,8 +58,6 @@ class LoginController extends GetxController {
     if (_storage.isLoggedIn) {
       Session.instance.currentUser = _storage.getUser();
       Get.offAllNamed(AppRoutes.discussion);
-    } else {
-      // Get.offAllNamed(AppRoutes.login);
     }
   }
 }

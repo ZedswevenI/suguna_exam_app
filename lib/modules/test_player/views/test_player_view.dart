@@ -89,15 +89,43 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                     _buildTopBar(controller),
                     Obx(() {
                       return Expanded(
-                        child: Row(
+                        child: Stack(
                           children: [
-                            Expanded(
-                              child: IgnorePointer(
-                                ignoring: controller.isTimerCompleted,
-                                child: _buildQuestionPanel(controller),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: IgnorePointer(
+                                    ignoring: controller.isTimerCompleted,
+                                    child: _buildQuestionPanel(controller),
+                                  ),
+                                ),
+                                _buildQuestionPalette(controller),
+                              ],
                             ),
-                            _buildQuestionPalette(controller),
+                            if (controller.isSubmitting.value)
+                              const Positioned.fill(
+                                child: ColoredBox(
+                                  color: Color(0x99000000),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CircularProgressIndicator(
+                                            color: Colors.white),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'Submitting your exam…',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       );

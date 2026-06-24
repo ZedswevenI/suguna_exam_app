@@ -53,6 +53,7 @@ dependencies:
   flutter_tex: ^5.1.10
   latext: ^0.4.1
   connectivity_plus: ^5.0.2
+  managed_configurations: ^1.0.2
   intl: ^0.18.0
   webview_flutter: ^4.13.1
 

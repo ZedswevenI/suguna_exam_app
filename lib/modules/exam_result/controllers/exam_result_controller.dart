@@ -89,6 +89,7 @@ class ExamResultController extends GetxController {
           answers.add(answer);
         }
         raw['answers'] = answers;
+        print("Data came ${raw}");
         resultData.value = raw;
       } else {
         errorMessage.value = response['message'] ?? 'Failed to load result';
@@ -393,7 +394,7 @@ class ExamResultController extends GetxController {
       grouped[sid]!.add(a);
     }
 
-    double grandPositive = 0, grandNegative = 0, grandTotal = 0, grandObtained = 0;
+    double grandPositive = 0, grandNegative = 0, grandTotal = 0, grandObtained = 0,obtainedMarks = 0;
     int grandCorrect = 0, grandWrong = 0;
 
     final subjects = sectionResults.map((section) {
@@ -401,7 +402,7 @@ class ExamResultController extends GetxController {
       final name = _sectionDisplayName(section);
       final sectionAnswers = grouped[sId] ?? [];
 
-      double positiveMarks = 0, negativeMarks = 0, totalMarks = 0;
+      double positiveMarks = 0, negativeMarks = 0, totalMarks = 0,obtainedMark = 0;
       int correct = 0, wrong = 0;
 
       for (var a in sectionAnswers) {
@@ -423,6 +424,7 @@ class ExamResultController extends GetxController {
       if (sectionAnswers.isEmpty) {
         totalMarks = (section['totalMarks'] as num?)?.toDouble() ?? 0.0;
       }
+      obtainedMark = (section['obtainedMarks'] as num?)?.toDouble() ?? 0.0;
 
       final totalScore = positiveMarks - negativeMarks;
 
@@ -432,6 +434,7 @@ class ExamResultController extends GetxController {
       grandObtained += totalScore;
       grandCorrect += correct;
       grandWrong += wrong;
+      obtainedMarks += obtainedMark;
 
       return {
         'subjectName': name,
@@ -442,6 +445,7 @@ class ExamResultController extends GetxController {
         'positiveMarks': positiveMarks,
         'negativeMarks': negativeMarks,
         'totalScore': totalScore,
+        "obtainedMarks" : obtainedMark
       };
     }).toList();
 
@@ -454,6 +458,7 @@ class ExamResultController extends GetxController {
       'positiveMarks': grandPositive,
       'negativeMarks': grandNegative,
       'totalScore': grandObtained,
+      "obtainedMarks" : obtainedMarks
     };
   }
 

@@ -313,7 +313,9 @@ class TestApiParser {
           negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
           text: qJson['questionText'] as String? ?? '',
           questionHtml: qJson['questionHtml'] as String?,
-          passageHtml: passageData?['passageHtml'] as String?,
+          passageHtml: passageData?['passageHtml'] != null
+              ? _stripLatexSpans(passageData!['passageHtml'] as String)
+              : null,
           type: parsedType,
           isInteger: questionTypeFromApi.toLowerCase() == 'integer',
           options: _parseOptions(rawOptions),
@@ -403,7 +405,9 @@ class TestApiParser {
           negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
           text: qJson['questionText'] as String? ?? '',
           questionHtml: _stripLatexSpans(qJson['questionHtml'] as String? ?? ''),
-          passageHtml: passageData?['passageHtml'] as String?,
+          passageHtml: passageData?['passageHtml'] != null
+              ? _stripLatexSpans(passageData!['passageHtml'] as String)
+              : null,
           type: parsedType,
           isInteger: questionTypeFromApi.toLowerCase() == 'integer',
           options: _parseOptions(rawOptions),
