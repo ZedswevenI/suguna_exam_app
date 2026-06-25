@@ -14,7 +14,7 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "exam_lock"
     private var isLockEnabled = false
     private val handler = Handler(Looper.getMainLooper())
-    private val lockCheckInterval = 1500L // Check every 2 seconds
+    private val lockCheckInterval = 1500L // Check every 1.5 seconds
 
     private val lockMonitor = object : Runnable {
         override fun run() {

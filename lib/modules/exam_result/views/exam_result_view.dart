@@ -15,7 +15,9 @@ class ExamResultView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ExamResultController>(
-      init: ExamResultController(),
+      // Controller is registered by ExamResultBinding on the route. Don't
+      // double-init here — the duplicate ExamResultController() instance
+      // raced with the binding and caused the spinner to stick on re-entry.
       builder: (controller) {
         return PopScope(
           canPop: false,
@@ -1295,8 +1297,10 @@ class ExamResultView extends StatelessWidget {
                           Text('Type', style: TextStyle(color: Colors.white)))),
               Expanded(
                   flex: 2,
-                  child: Text('Partial',
-                      style: TextStyle(color: Colors.white))),
+                  child: Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Text('Result',
+                          style: TextStyle(color: Colors.white)))),
               Expanded(
                   flex: 2,
                   child: Text('You Marked',
@@ -1320,8 +1324,10 @@ class ExamResultView extends StatelessWidget {
         ...answers.asMap().entries.map((entry) {
           final index = entry.key;
           final answer = entry.value;
-          final isCorrect = answer['isCorrect'] == true;
+          final rawIsCorrect = answer['isCorrect'];
           final isSkipped = answer['isSkipped'] == true;
+          final isCorrect = rawIsCorrect == true;
+          final isPartial = !isSkipped && rawIsCorrect == null;
           final marks = (answer['marksAwarded'] as num?)?.toDouble() ?? 0.0;
           final userAnswer = controller.getUserAnswerDisplay(answer);
           final questionType = answer['questionType'] ?? '';
@@ -1329,8 +1335,23 @@ class ExamResultView extends StatelessWidget {
               controller.getSectionName(answer['sectionId'] ?? '');
           final timeTakenMs = (answer['timeTaken'] as num?)?.toInt() ?? 0;
           final timeTakenSec = timeTakenMs ~/ 1000;
-          final partiallyMarked = answer['hasPartialMarking'] ?? '';
-          print("Partially marked ${partiallyMarked}");
+
+          // Result label + color (mirrors web StudentResultComponent badges).
+          String statusLabel;
+          Color statusBg;
+          if (isSkipped) {
+            statusLabel = 'SKIPPED';
+            statusBg = const Color(0xFFF59E0B); // amber
+          } else if (isCorrect) {
+            statusLabel = 'CORRECT';
+            statusBg = const Color(0xFF10B981); // green
+          } else if (isPartial) {
+            statusLabel = 'PARTIAL';
+            statusBg = const Color(0xFF0EA5E9); // info blue
+          } else {
+            statusLabel = 'INCORRECT';
+            statusBg = const Color(0xFFEF4444); // red
+          }
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: const BoxDecoration(
@@ -1372,13 +1393,29 @@ class ExamResultView extends StatelessWidget {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text(
-                    partiallyMarked.toString(),
-                    style: const TextStyle(
-                      color: Color(0xFF00D4FF),
-                      fontWeight: FontWeight.bold,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ),
-                  ).marginOnly(left: 8),
+                  ),
                 ),
                 Expanded(
                   flex: 2,

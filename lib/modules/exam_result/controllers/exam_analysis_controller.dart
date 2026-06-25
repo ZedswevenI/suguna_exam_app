@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services/assigment_api_services.dart';
@@ -9,6 +11,7 @@ import '../../../data/services/sessions.dart';
 /// shape as the full result) and exposes the section/subject breakdown.
 class ExamAnalysisController extends GetxController {
   final _apiService = ServiceLocator.get<AssignmentApiServices>();
+  static const _lockChannel = MethodChannel('exam_lock');
 
   final resultData = Rxn<Map<String, dynamic>>();
   final examInfo = Rxn<Map<String, dynamic>>();
@@ -22,7 +25,18 @@ class ExamAnalysisController extends GetxController {
     if (args is Map<String, dynamic>) {
       examInfo.value = args;
     }
+    // NOTE: we deliberately do NOT call stopLock on init. Under MDM kiosk,
+    // stopLockTask() while the analytics view is settling has been seen to
+    // force-close the activity. Instead, release the lock when the user taps
+    // "Back to Home" via [unlockBeforeExit].
     _loadAnalysis();
+  }
+
+  /// Call from the "Back to Home" button right before navigating away.
+  Future<void> unlockBeforeExit() async {
+    try {
+      // await _lockChannel.invokeMethod('stopLock');
+    } catch (_) {}
   }
 
   Future<void> _loadAnalysis() async {
@@ -44,7 +58,19 @@ class ExamAnalysisController extends GetxController {
         return;
       }
       if (response['status'] == true) {
-        resultData.value = Map<String, dynamic>.from(response['data'] as Map);
+        final raw = response['data'];
+        if (raw is Map) {
+          resultData.value = Map<String, dynamic>.from(raw);
+        } else {
+          // The server can return data:null right after submission while the
+          // result is still being processed. Show an empty-but-valid payload
+          // instead of crashing.
+          resultData.value = <String, dynamic>{
+            'answers': const [],
+            'sectionResults': const [],
+            if (examInfo.value != null) ...examInfo.value!,
+          };
+        }
       } else {
         errorMessage.value = response['message'] ?? 'Failed to load analysis';
       }

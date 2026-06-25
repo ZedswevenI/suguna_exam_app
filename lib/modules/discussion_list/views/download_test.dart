@@ -263,7 +263,11 @@ class _AppHeader extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-                    onPressed: () => Get.find<DiscussionListController>().fetchExams(),
+                    onPressed: () {
+                      Get.find<DiscussionListController>().fetchExams();
+                      Get.find<DiscussionListController>().syncPendingExamSubmissions();
+                    },
+                    // onPressed: () => ,
                   ),
                 ],
               ),

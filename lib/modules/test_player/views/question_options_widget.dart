@@ -685,7 +685,27 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
     final passage = question.passageHtml;
     if (passage == null || passage.isEmpty) return qHtml;
     final fs = controller.getQuestionFontSize();
+    // Force every <img> and <table> inside the passage / question HTML to
+    // shrink to the container width so images don't get cropped on the right.
+    const fitMediaCss = '''
+<style>
+  .passage-body img, .question-body img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 6px 0;
+  }
+  .passage-body table, .question-body table { max-width: 100% !important; }
+  .passage-body, .question-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+</style>
+''';
     return '''
+$fitMediaCss
 <div style="
   background:#f0f4ff;
   border-left:4px solid #4F46E5;
@@ -697,14 +717,11 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
   color:#1e293b;
   width:100%;
   box-sizing:border-box;
-  word-wrap:break-word;
-  overflow-wrap:break-word;
-  white-space:normal;
 ">
   <div style="font-size:11px;font-weight:700;color:#4F46E5;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Passage</div>
-  <div style="word-wrap:break-word;overflow-wrap:break-word;white-space:normal;">$passage</div>
+  <div class="passage-body">$passage</div>
 </div>
-$qHtml''';
+<div class="question-body">$qHtml</div>''';
   }
 
 }

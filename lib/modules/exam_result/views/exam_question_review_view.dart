@@ -35,24 +35,25 @@ class ExamQuestionReviewView extends StatelessWidget {
                         ),
                       );
                     }
+                    // Render everything inside a single TeXViewDocument (one
+                    // webview only) using KaTeX. MathJax + a TeXViewColumn was
+                    // sometimes stuck on its loading indicator when the user
+                    // re-entered this screen quickly because the second
+                    // webview's "loaded" event never fired.
+                    final combined = StringBuffer();
+                    for (var i = 0; i < questions.length; i++) {
+                      combined.write(_buildQuestionHtml(controller, questions[i], i));
+                    }
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TeXView(
                         key: ValueKey('section_${controller.selectedSectionIndex.value}'),
+                        loadingWidgetBuilder: (_) => const SizedBox.shrink(),
                         style: const TeXViewStyle(
                           backgroundColor: Colors.white,
                           padding: TeXViewPadding.all(0),
                         ),
-                        loadingWidgetBuilder: (_) => const Center(child: CircularProgressIndicator()),
-                        child: TeXViewColumn(
-                          children: [
-                            ...questions.asMap().entries.map((entry) {
-                              return TeXViewDocument(
-                                _buildQuestionHtml(controller, entry.value, entry.key),
-                              );
-                            }),
-                          ],
-                        ),
+                        child: TeXViewDocument(combined.toString()),
                       ),
                     );
                   }),
@@ -200,8 +201,16 @@ class ExamQuestionReviewView extends StatelessWidget {
   // ============================================================
   String _buildQuestionHtml(
       ExamResultController controller, Map<String, dynamic> answer, int index) {
-    final isCorrect = answer['isCorrect'] == true;
+    // Mirror the web `StudentResultComponent` logic:
+    //   isSkipped         → SKIPPED (warning)
+    //   isCorrect == true → CORRECT (success)
+    //   isCorrect == false→ INCORRECT (danger)
+    //   isCorrect == null → PARTIAL  (info — partial-marking award)
+    final rawIsCorrect = answer['isCorrect'];
     final isSkipped = answer['isSkipped'] == true;
+    final isCorrect = rawIsCorrect == true;
+    final isIncorrect = rawIsCorrect == false;
+    final isPartial = !isSkipped && rawIsCorrect == null;
     final marksAwarded = (answer['marksAwarded'] as num?)?.toDouble() ?? 0.0;
     final positiveMarks = answer['positiveMarks'] ?? 0;
     final negativeMarks = answer['negativeMarks'] ?? 0;
@@ -209,7 +218,23 @@ class ExamQuestionReviewView extends StatelessWidget {
     final timeSec = timeTakenMs ~/ 1000;
     final questionType = answer['questionType'] ?? '';
     final questionHtml = answer['questionHtml'] ?? '';
-    final options = List<Map<String, dynamic>>.from(answer['questionOptions'] ?? []);
+    // Options may live at top level or nested under `question` depending on
+    // backend shape. Pick the first non-empty list.
+    List<dynamic> _resolveOptions() {
+      final top = answer['questionOptions'];
+      if (top is List && top.isNotEmpty) return top;
+      final q = answer['question'];
+      if (q is Map) {
+        for (final key in const ['questionOptions', 'options']) {
+          final v = q[key];
+          if (v is List && v.isNotEmpty) return v;
+        }
+      }
+      return const [];
+    }
+    final options = List<Map<String, dynamic>>.from(
+      _resolveOptions().map((e) => Map<String, dynamic>.from(e as Map)),
+    );
     // Backend may use any of: solutionHtml, solutionText, solution, or nest it
     // under a `question` object — accept all common shapes.
     dynamic _firstNonEmpty(List<dynamic> values) {
@@ -236,11 +261,39 @@ class ExamQuestionReviewView extends StatelessWidget {
       statusText = 'Skipped, You Scored 0';
       statusColor = '#9CA3AF';
     } else if (isCorrect) {
-      statusText = 'Your answer is correct, You Scored ${marksAwarded.toStringAsFixed(0)}';
+      statusText =
+          'Your answer is correct, You Scored ${marksAwarded.toStringAsFixed(1)}';
       statusColor = '#10B981';
+    } else if (isPartial) {
+      statusText =
+          'Partial answer, You Scored ${marksAwarded.toStringAsFixed(1)}';
+      statusColor = '#0EA5E9';
     } else {
-      statusText = 'Your answer is incorrect, You Scored ${marksAwarded.toStringAsFixed(0)}';
+      statusText =
+          'Your answer is incorrect, You Scored ${marksAwarded.toStringAsFixed(1)}';
       statusColor = '#EF4444';
+    }
+
+    // Small uppercase status badge — mirrors the web `<span class="badge ...">`.
+    String badgeLabel;
+    String badgeBg;
+    String badgeFg;
+    if (isSkipped) {
+      badgeLabel = 'SKIPPED';
+      badgeBg = '#FEF3C7';
+      badgeFg = '#92400E';
+    } else if (isCorrect) {
+      badgeLabel = 'CORRECT';
+      badgeBg = '#10B981';
+      badgeFg = '#FFFFFF';
+    } else if (isPartial) {
+      badgeLabel = 'PARTIAL';
+      badgeBg = '#0EA5E9';
+      badgeFg = '#FFFFFF';
+    } else {
+      badgeLabel = 'INCORRECT';
+      badgeBg = '#EF4444';
+      badgeFg = '#FFFFFF';
     }
 
     final buf = StringBuffer();
@@ -251,6 +304,7 @@ class ExamQuestionReviewView extends StatelessWidget {
   <!-- Info bar -->
   <div style="padding:10px 14px; background:#F9FAFB; border-bottom:1px solid #E5E7EB; border-radius:8px 8px 0 0; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
     <span style="font-weight:700; font-size:13px;">Question. ${index + 1}</span>
+    <span style="background:$badgeBg; color:$badgeFg; padding:2px 10px; border-radius:12px; font-size:10px; font-weight:700; letter-spacing:0.5px;">$badgeLabel</span>
     <span style="color:$statusColor; font-size:12px; font-weight:500;">$statusText</span>
     <span style="background:rgba(59,130,246,0.1); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; color:#3B82F6;">+$positiveMarks, -$negativeMarks</span>
     <span style="font-size:11px; color:#6B7280;">⏱ ${timeSec} Sec</span>
@@ -267,6 +321,7 @@ class ExamQuestionReviewView extends StatelessWidget {
     // MCQ options (single / multiple / single dropdown / multi dropdown)
     if (questionType == 'mcq_single' ||
         questionType == 'mcq_multiple' ||
+        questionType == 'mcq_multi' ||
         questionType == 'single_dropdown' ||
         questionType == 'dropdown' ||
         questionType == 'multi_dropdown') {

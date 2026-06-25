@@ -32,19 +32,49 @@ class ExamAnalysisView extends StatelessWidget {
                 if (controller.resultData.value == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                // Defensive: if the server returned no answers/sections yet
+                // (result still processing), show a friendly message instead
+                // of trying to render an empty chart that may crash on the
+                // first frame.
+                final hasData = controller.answers.isNotEmpty ||
+                    controller.sectionResults.isNotEmpty;
+
                 return Column(
                   children: [
                     _buildHeader(controller),
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            _buildPerformanceReport1(controller),
-                            const SizedBox(height: 24),
-                            _buildPerformanceChart(controller),
-                          ],
-                        ),
+                        child: hasData
+                            ? Column(
+                                children: [
+                                  _buildPerformanceReport1(controller),
+                                  const SizedBox(height: 24),
+                                  _buildPerformanceChart(controller),
+                                ],
+                              )
+                            : const Padding(
+                                padding: EdgeInsets.only(top: 80),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.hourglass_top,
+                                          size: 64,
+                                          color: Color(0xFF94A3B8)),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Your result is being processed.\nIt will appear here shortly.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -115,7 +145,10 @@ class ExamAnalysisView extends StatelessWidget {
             children: [
               const Spacer(),
               OutlinedButton.icon(
-                onPressed: () => Get.offAllNamed(AppRoutes.discussion),
+                onPressed: () async {
+                  // await controller.unlockBeforeExit();
+                  await Get.offAllNamed(AppRoutes.discussion);
+                },
                 icon: const Icon(Icons.close_rounded, size: 20),
                 label: const Text('Back to Home'),
                 style: OutlinedButton.styleFrom(

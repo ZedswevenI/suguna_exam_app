@@ -51,20 +51,31 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
     });
   }
 
+  // Tracks whether the user backgrounded the app (e.g. home/recents button)
+  // mid-exam. Used to open the submit confirmation when they return.
+  bool _wasBackgrounded = false;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      // App went to background — warn user
-      // Get.snackbar(
-      //   '⚠️ Warning',
-      //   'Do not leave the exam screen!',
-      //   snackPosition: SnackPosition.TOP,
-      //   backgroundColor: const Color(0xFFEF4444),
-      //   colorText: Colors.white,
-      //   duration: const Duration(seconds: 3),
-      // );
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _wasBackgrounded = true;
+      return;
     }
+    if (state == AppLifecycleState.resumed && _wasBackgrounded) {
+      _wasBackgrounded = false;
+      _maybeOpenSubmitDialog();
+    }
+  }
+
+  void _maybeOpenSubmitDialog() {
+    if (Get.isDialogOpen ?? false) return;
+    try {
+      final controller = TestPlayerController.to;
+      if (controller.isTestCompleted.value) return;
+      controller.completeTest();
+    } catch (_) {}
   }
 
   @override
@@ -74,6 +85,10 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
       builder: (controller) {
         return PopScope(
           canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            _maybeOpenSubmitDialog();
+          },
           child: Theme(
             data: Theme.of(context).copyWith(
               splashColor: Colors.transparent,
@@ -1609,9 +1624,13 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
             child: const Text('Cancel'),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              controller.clearData();
-              Get.offAllNamed(AppRoutes.discussion);
+            onPressed: () async {
+              await controller.clearData();
+              await Get.offAllNamed(AppRoutes.discussion);
+              // Unlock after navigation completes (same pattern as the
+              // submit path — avoids the route-teardown race on MDM).
+              await Future<void>.delayed(const Duration(milliseconds: 300));
+              await controller.unlockScreen();
             },
             icon: const Icon(Icons.restart_alt_rounded, size: 18),
             label: const Text('Exit'),

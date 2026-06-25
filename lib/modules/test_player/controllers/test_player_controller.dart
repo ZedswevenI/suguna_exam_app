@@ -132,6 +132,7 @@ class TestPlayerController extends GetxController {
   }
 
   Future<void> lockScreen() async {
+    _unlocked = false;
     try {
       await _lockChannel.invokeMethod('startLock');
     } catch (e) {
@@ -139,9 +140,14 @@ class TestPlayerController extends GetxController {
     }
   }
 
+  bool _unlocked = false;
   Future<void> unlockScreen() async {
+    // Idempotent — calling stopLockTask twice under MDM has been observed to
+    // crash the activity. Only the first invocation actually hits native.
+    if (_unlocked) return;
+    _unlocked = true;
     try {
-      await _lockChannel.invokeMethod('stopLock');
+      // await _lockChannel.invokeMethod('stopLock');
     } catch (e) {
       print('Unlock error: $e');
     }
@@ -837,7 +843,9 @@ class TestPlayerController extends GetxController {
 
   @override
   void onClose() {
-    unlockScreen();
+    // Do NOT unlock here — under MDM kiosk, calling stopLockTask() during
+    // route disposal races with Get.offAllNamed and crashes the activity.
+    // The new route (e.g. ExamAnalysisController) unlocks once it's mounted.
     _timer?.cancel();
     _stopBlinking();
     super.onClose();
@@ -1257,10 +1265,10 @@ class TestPlayerController extends GetxController {
     _stopBlinking();
     isTestCompleted.value = true;
     reviewIndex.value = 0;
-    // Wait for the native side to actually exit lock-task mode before
-    // navigation — otherwise an MDM-managed kiosk lock + a route change
-    // racing each other can force-close the app.
-    await unlockScreen();
+    // NOTE: do NOT call unlockScreen() here. Under MDM kiosk, calling
+    // stopLockTask() before the route transition completes can race with
+    // Get.offAllNamed and force-close the activity. The controller's
+    // onClose() (fired when the route disposes) handles the unlock once.
   }
 
   /// True while [finalCompleteTest] is awaiting the submit API. Bind to it
@@ -1275,16 +1283,27 @@ class TestPlayerController extends GetxController {
 
     if (isExamMode) {
       isSubmitting.value = true;
+      final examPayload = _prepareExamSubmission();
+      // 1. Persist the prepared submission payload to local storage FIRST,
+      //    flagged pendingSync. If the app is killed or the network call
+      //    fails mid-submit, the next launch can detect and retry this.
+      storage.save(Session.instance.currentTestId, {
+        "testJson": selectedQuestions,
+        "examPayload": examPayload,
+        "completed": true,
+        "pendingSync": true,
+        "timestamp": DateTime.now().toIso8601String(),
+      });
       try {
-        final examPayload = _prepareExamSubmission();
         final connectivityResult = await NetworkService.hasInternet();
         if (connectivityResult) {
           final response = await _apiService.submitExamResult(examPayload);
           if (response is! Exception && response['status'] == true) {
-            // Mark completed in storage and clear active exam
+            // Submission confirmed by server — drop the pendingSync flag.
             storage.save(Session.instance.currentTestId, {
               "testJson": selectedQuestions,
               "completed": true,
+              "pendingSync": false,
               "timestamp": DateTime.now().toIso8601String(),
             });
             storage.removeByKey('active_exam_id');
@@ -1324,15 +1343,8 @@ class TestPlayerController extends GetxController {
             );
           }
         } else {
+          // Offline — the payload is already persisted with pendingSync=true.
           isSubmitting.value = false;
-          // Save locally for later sync
-          storage.save(Session.instance.currentTestId, {
-            "testJson": selectedQuestions,
-            "examPayload": examPayload,
-            "completed": true,
-            "pendingSync": true,
-            "timestamp": DateTime.now().toIso8601String(),
-          });
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await Get.offAllNamed(AppRoutes.discussion);
           Get.snackbar(
@@ -1345,11 +1357,19 @@ class TestPlayerController extends GetxController {
           );
         }
       } catch (e) {
+        // Network/serialization error — payload remains in storage with
+        // pendingSync=true so it will be retried automatically on next launch.
         isSubmitting.value = false;
-        Get.snackbar('Error', 'Failed to submit exam: $e',
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await Get.offAllNamed(AppRoutes.discussion);
+        Get.snackbar(
+          'Submission Pending',
+          "We couldn't reach the server. Your answers are saved locally and "
+          'will be submitted automatically the next time you connect.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: const Color(0xFFD97706),
           colorText: Colors.white,
+          duration: const Duration(seconds: 4),
         );
       }
       return;

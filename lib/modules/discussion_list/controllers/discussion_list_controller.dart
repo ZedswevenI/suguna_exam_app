@@ -23,7 +23,51 @@ class DiscussionListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Retry any exam whose submission never reached the server (app was
+    // closed mid-submit, etc.) before showing the list.
+    syncPendingExamSubmissions();
     fetchExams();
+  }
+
+  /// Walks local storage for any `exam_*` entry flagged `pendingSync: true`
+  /// and re-submits it. Called on controller init and after each list reload.
+  Future<void> syncPendingExamSubmissions() async {
+    try {
+      final hasInternet = await NetworkService.hasInternet();
+      if (!hasInternet) return;
+      final keys = _storage.getAllKeys();
+      for (final key in keys) {
+        if (key is! String) continue;
+        if (!key.startsWith('exam_') || key == 'exam_id') continue;
+        if (key == 'active_exam_id') continue;
+        final entry = _storage.read(key);
+        if (entry is! Map) continue;
+        if (entry['pendingSync'] != true) continue;
+        final payload = entry['examPayload'];
+        if (payload is! Map) continue;
+
+        try {
+          final response = await _apiService
+              .submitExamResult(Map<String, dynamic>.from(payload));
+          if (response is! Exception && response['status'] == true) {
+            // Mark as fully submitted, keep the rest of the entry intact.
+            final updated = Map<String, dynamic>.from(entry);
+            updated['pendingSync'] = false;
+            updated['syncedAt'] = DateTime.now().toIso8601String();
+            _storage.save(key, updated);
+            // If this was the still-active exam, drop the active flag.
+            if (activeExamId == key.replaceFirst('exam_', '')) {
+              _storage.removeByKey('active_exam_id');
+            }
+          }
+        } catch (e) {
+          // Leave pendingSync=true so we can try again next time.
+          print('Pending exam submit failed for $key: $e');
+        }
+      }
+    } catch (e) {
+      print('syncPendingExamSubmissions error: $e');
+    }
   }
 
   Future<void> fetchExams() async {
@@ -70,9 +114,12 @@ class DiscussionListController extends GetxController {
   Future<void> downloadExam(ExamModel exam, String password) async {
     if (isDownloading.value) return;
 
-    // Check if another exam is active
+    // Check if another exam is active — but always allow the student into a
+    // currently-live exam (they can switch to whatever is live right now).
     final currentActiveId = activeExamId;
-    if (currentActiveId != null && currentActiveId != exam.examId) {
+    if (currentActiveId != null &&
+        currentActiveId != exam.examId &&
+        !exam.isLive) {
       final activeData = _storage.read('exam_$currentActiveId');
       if (activeData != null && activeData['completed'] != true) {
         Get.snackbar(
@@ -410,6 +457,20 @@ class DiscussionListController extends GetxController {
     final cached = _storage.read(storageKey);
     if (cached != null) {
       if (cached['completed'] == true) {
+        // The submission may not have reached the server yet — retry first.
+        if (cached['pendingSync'] == true) {
+          Get.snackbar(
+            'Submission Pending',
+            'We are submitting your earlier attempt — please wait…',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFFD97706),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+          // Fire-and-forget; the analysis screen will load whatever the
+          // server has once the sync attempt resolves.
+          syncPendingExamSubmissions();
+        }
         Get.toNamed(AppRoutes.examAnalysis, arguments: {
           'examId': exam.examId,
           'examName': exam.examName,
@@ -422,8 +483,10 @@ class DiscussionListController extends GetxController {
       return;
     }
 
-    // Check active exam restriction
-    if (hasActiveExam && activeExamId != exam.examId) {
+    // Active-exam restriction: block opening another exam only if the new
+    // one isn't currently live. Live exams must always be accessible — the
+    // student can switch to write whichever is live right now.
+    if (hasActiveExam && activeExamId != exam.examId && !exam.isLive) {
       Get.snackbar(
         'Exam In Progress',
         'Please complete the current exam before starting a new one.',
