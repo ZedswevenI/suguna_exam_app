@@ -27,6 +27,8 @@ import 'package:suguna_exam_app/modules/exam_result/views/exam_result_view.dart'
 import 'package:suguna_exam_app/modules/exam_result/views/exam_question_review_view.dart';
 import 'package:suguna_exam_app/modules/exam_result/bindings/exam_analysis_binding.dart';
 import 'package:suguna_exam_app/modules/exam_result/views/exam_analysis_view.dart';
+import 'package:suguna_exam_app/modules/exam_result/bindings/absent_exam_questions_binding.dart';
+import 'package:suguna_exam_app/modules/exam_result/views/absent_exam_questions_view.dart';
 
 import '../../modules/discussion_list/views/download_test.dart';
 
@@ -105,6 +107,11 @@ class RouteConfig {
         name: AppRoutes.examAnalysis,
         page: () => const ExamAnalysisView(),
         binding: ExamAnalysisBinding(),
+      ),
+      GetPage(
+        name: AppRoutes.absentExamQuestions,
+        page: () => const AbsentExamQuestionsView(),
+        binding: AbsentExamQuestionsBinding(),
       ),
     ];
   }

@@ -226,4 +226,21 @@ class AssignmentApiServices extends ApiService {
       rethrow;
     }
   }
+
+  /// Question paper (no answer key) for a student who was absent for the exam.
+  Future<dynamic> getAbsentExamQuestions(String tenantId, String examId, String examCode) async {
+    try {
+      final response = await post(
+        '/exam/questions/get-questions/absent',
+        body: {
+          "tenantId": tenantId,
+          "examId": examId,
+          "examCode": examCode,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

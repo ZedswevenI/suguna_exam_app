@@ -92,13 +92,43 @@ class ExamResultController extends GetxController {
         print("Data came ${raw}");
         resultData.value = raw;
       } else {
-        errorMessage.value = response['message'] ?? 'Failed to load result';
+        final message = (response['message'] ?? '').toString();
+        // Student never attempted this exam — show the question paper
+        // (no answer key) instead of a generic error screen.
+        if (_isAbsentMessage(message)) {
+          _goToAbsentQuestions();
+          return;
+        }
+        errorMessage.value = message.isNotEmpty ? message : 'Failed to load result';
       }
     } catch (e) {
+      // The backend returns "Result not found for this student" with a
+      // non-2xx status for absent students, so ApiService throws before the
+      // `if (response['status'] == true)` branch above ever runs — the
+      // absent check has to be repeated here too.
+      if (_isAbsentMessage(e.toString())) {
+        _goToAbsentQuestions();
+        return;
+      }
       errorMessage.value = 'Failed to load result: $e';
     } finally {
       isLoading.value = false;
     }
+  }
+
+  bool _isAbsentMessage(String message) =>
+      message.toLowerCase().contains('result not found');
+
+  void _goToAbsentQuestions() {
+    final args = examInfo.value ?? {};
+    final userData = Session.instance.currentUser?['data'];
+    final tenantId = userData?['tenantId'] ?? args['entiId'] ?? '';
+    Get.offNamed(AppRoutes.absentExamQuestions, arguments: {
+      'tenantId': tenantId,
+      'examId': args['examId'] ?? '',
+      'examCode': args['examCode'] ?? '',
+      'examName': args['examName'] ?? '',
+    });
   }
 
   /// Retry loading result
