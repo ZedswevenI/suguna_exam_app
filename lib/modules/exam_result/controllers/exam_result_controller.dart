@@ -86,6 +86,22 @@ class ExamResultController extends GetxController {
             }
             answer['questionOptions'] = opts;
           }
+          // Matrix/match-the-following left & right columns.
+          for (final colKey in const ['leftColumn', 'rightColumn']) {
+            if (answer[colKey] is! List) continue;
+            final cells = <Map<String, dynamic>>[];
+            for (final c in (answer[colKey] as List)) {
+              final cell = Map<String, dynamic>.from(c as Map);
+              for (final key in const ['text', 'textHtml']) {
+                if (cell[key] is String && (cell[key] as String).isNotEmpty) {
+                  cell[key] = await _replaceImagesWithBase64(
+                      _stripLatexSpans(cell[key] as String));
+                }
+              }
+              cells.add(cell);
+            }
+            answer[colKey] = cells;
+          }
           answers.add(answer);
         }
         raw['answers'] = answers;
@@ -93,31 +109,34 @@ class ExamResultController extends GetxController {
         resultData.value = raw;
       } else {
         final message = (response['message'] ?? '').toString();
-        // Student never attempted this exam — show the question paper
-        // (no answer key) instead of a generic error screen.
-        if (_isAbsentMessage(message)) {
-          _goToAbsentQuestions();
-          return;
-        }
+        if (_handleKnownFailure(message)) return;
         errorMessage.value = message.isNotEmpty ? message : 'Failed to load result';
       }
     } catch (e) {
-      // The backend returns "Result not found for this student" with a
-      // non-2xx status for absent students, so ApiService throws before the
-      // `if (response['status'] == true)` branch above ever runs — the
-      // absent check has to be repeated here too.
-      if (_isAbsentMessage(e.toString())) {
-        _goToAbsentQuestions();
-        return;
-      }
+      // Both known cases below come back from the backend with a non-2xx
+      // status, so ApiService throws before the `if (response['status'] ==
+      // true)` branch above ever runs — they have to be checked here too.
+      if (_handleKnownFailure(e.toString())) return;
       errorMessage.value = 'Failed to load result: $e';
     } finally {
       isLoading.value = false;
     }
   }
 
-  bool _isAbsentMessage(String message) =>
-      message.toLowerCase().contains('result not found');
+  /// Redirects to the right fallback screen for two expected backend
+  /// failures. Returns true if it redirected (caller should stop).
+  bool _handleKnownFailure(String message) {
+    final lower = message.toLowerCase();
+    // Both cases land on the same question-paper-with-answers screen: the
+    // exam itself is published either way, this student's own result just
+    // isn't ready (absent, or not graded/visible yet) — show the questions
+    // instead of a generic error screen.
+    if (lower.contains('result not found') || lower.contains('not visible yet')) {
+      _goToAbsentQuestions();
+      return true;
+    }
+    return false;
+  }
 
   void _goToAbsentQuestions() {
     final args = examInfo.value ?? {};

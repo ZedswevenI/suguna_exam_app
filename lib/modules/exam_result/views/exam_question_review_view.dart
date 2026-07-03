@@ -196,6 +196,77 @@ class ExamQuestionReviewView extends StatelessWidget {
     });
   }
 
+  // Parses "A:P,Q,R(2,0);B:P,Q(2,0);C:R(2,0);D:R(2,0)" into, for each left
+  // key, the list of matched right keys plus its (posMark, negMark).
+  Map<String, ({List<String> rightKeys, String posMark, String negMark})>
+      _parseMatrixMatches(String correctAnswer) {
+    final out = <String, ({List<String> rightKeys, String posMark, String negMark})>{};
+    for (final segment in correctAnswer.split(';')) {
+      final trimmed = segment.trim();
+      if (trimmed.isEmpty) continue;
+      final colonIdx = trimmed.indexOf(':');
+      if (colonIdx == -1) continue;
+      final leftKey = trimmed.substring(0, colonIdx).trim();
+      final rest = trimmed.substring(colonIdx + 1).trim();
+
+      final marksMatch = RegExp(r'\(([^)]*)\)').firstMatch(rest);
+      var rightPart = rest;
+      var posMark = '';
+      var negMark = '';
+      if (marksMatch != null) {
+        rightPart = rest.substring(0, marksMatch.start);
+        final marksParts = marksMatch.group(1)!.split(',');
+        posMark = marksParts.isNotEmpty ? marksParts[0].trim() : '';
+        negMark = marksParts.length > 1 ? marksParts[1].trim() : '';
+      }
+      final rightKeys = rightPart
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (leftKey.isNotEmpty && rightKeys.isNotEmpty) {
+        out[leftKey] = (rightKeys: rightKeys, posMark: posMark, negMark: negMark);
+      }
+    }
+    return out;
+  }
+
+  // Student's submitted matrix answer. Format isn't guaranteed to match the
+  // correctAnswer encoding exactly, so this is deliberately more permissive:
+  // right-hand values are split on ',' when present, otherwise split into
+  // individual characters if every character is a known right-column key.
+  Map<String, List<String>> _parseMatrixAnswer(String raw, Set<String> knownRightKeys) {
+    final out = <String, List<String>>{};
+    for (final segment in raw.split(';')) {
+      final trimmed = segment.trim();
+      if (trimmed.isEmpty) continue;
+      final colonIdx = trimmed.indexOf(':');
+      if (colonIdx == -1) continue;
+      final leftKey = trimmed.substring(0, colonIdx).trim();
+      var rightPart = trimmed.substring(colonIdx + 1).trim();
+      final marksMatch = RegExp(r'\(([^)]*)\)').firstMatch(rightPart);
+      if (marksMatch != null) {
+        rightPart = rightPart.substring(0, marksMatch.start);
+      }
+
+      List<String> keys;
+      if (rightPart.contains(',')) {
+        keys = rightPart.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      } else if (rightPart.length > 1 &&
+          rightPart.split('').every((c) => knownRightKeys.contains(c))) {
+        keys = rightPart.split('');
+      } else if (rightPart.isNotEmpty) {
+        keys = [rightPart];
+      } else {
+        keys = const [];
+      }
+      if (leftKey.isNotEmpty && keys.isNotEmpty) {
+        out.putIfAbsent(leftKey, () => []).addAll(keys);
+      }
+    }
+    return out;
+  }
+
   // ============================================================
   // Build HTML string for a single question (rendered inside one TeXView)
   // ============================================================
@@ -434,41 +505,73 @@ class ExamQuestionReviewView extends StatelessWidget {
       }
     }
 
-    // Match the Following (A:PS;B:QR)
+    // Match the Following / Matrix — one left key can map to several right
+    // keys, e.g. correctAnswer "A:P,Q,R(2,0);B:P,Q(2,0);C:R(2,0);D:R(2,0)".
     if (questionType == 'match_the_following' ||
         questionType == 'maq' ||
         questionType == 'matrix' ||
         questionType == 'matrix_match') {
-      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
-      Map<String, String> parsePairs(String raw) {
-        final out = <String, String>{};
-        if (raw.isEmpty) return out;
-        for (final p in raw.split(';')) {
-          final parts = p.split(':');
-          if (parts.length == 2) out[parts[0].trim()] = parts[1].trim();
-        }
-        return out;
-      }
+      final leftColumn = List<Map<String, dynamic>>.from(
+          (answer['leftColumn'] as List? ?? [])
+              .map((e) => Map<String, dynamic>.from(e as Map)));
+      final rightColumn = List<Map<String, dynamic>>.from(
+          (answer['rightColumn'] as List? ?? [])
+              .map((e) => Map<String, dynamic>.from(e as Map)));
+      final knownRightKeys =
+          rightColumn.map((e) => (e['key'] ?? '').toString()).toSet();
 
-      final userPairs = parsePairs(userAnswer);
-      final correctPairs = parsePairs(correctAnswer);
-      final lefts = {...userPairs.keys, ...correctPairs.keys}.toList()..sort();
+      final correctAnswer = answer['correctAnswer']?.toString() ?? '';
+      final correctMatches = _parseMatrixMatches(correctAnswer);
+      final userMatches = _parseMatrixAnswer(userAnswer, knownRightKeys);
+
+      final lefts = leftColumn.isNotEmpty
+          ? leftColumn.map((e) => (e['key'] ?? '').toString()).toList()
+          : (<String>{...userMatches.keys, ...correctMatches.keys}.toList()..sort());
+      final leftTextByKey = {
+        for (final item in leftColumn)
+          (item['key'] ?? '').toString(): (item['text'] ?? item['textHtml'] ?? '').toString(),
+      };
+
+      if (leftColumn.isNotEmpty || rightColumn.isNotEmpty) {
+        buf.write('<div style="display:flex; gap:16px; margin-bottom:12px;">');
+        for (final column in [leftColumn, rightColumn]) {
+          if (column.isEmpty) continue;
+          buf.write('<div style="flex:1; border:1px solid #E5E7EB; border-radius:8px; overflow:hidden;">');
+          for (final item in column) {
+            final key = item['key'] ?? '';
+            final text = item['text'] ?? item['textHtml'] ?? '';
+            buf.write('''
+<div style="display:flex; gap:8px; padding:10px 12px; border-top:1px solid #E5E7EB;">
+  <div style="font-weight:700; font-size:13px;">$key.</div>
+  <div style="flex:1; font-size:13px;">$text</div>
+</div>
+''');
+          }
+          buf.write('</div>');
+        }
+        buf.write('</div>');
+      }
 
       buf.write('<div style="border:1px solid #E5E7EB; border-radius:8px; overflow:hidden;">');
       buf.write('<div style="display:flex; padding:8px 12px; background:#F3F4F6; font-size:12px; font-weight:700;">'
-          '<div style="flex:1;">Left</div>'
-          '<div style="flex:1;">Your Answer</div>'
-          '<div style="flex:1;">Correct Answer</div>'
+          '<div style="flex:3;">Left</div>'
+          '<div style="flex:2;">Your Answer</div>'
+          '<div style="flex:2;">Correct Answer</div>'
           '</div>');
       for (final left in lefts) {
-        final u = userPairs[left] ?? '-';
-        final c = correctPairs[left] ?? '-';
-        final ok = u.split('').toSet().toString() == c.split('').toSet().toString();
-        final color = (userPairs[left] == null) ? '#6B7280' : (ok ? '#10B981' : '#EF4444');
+        final leftText = leftTextByKey[left] ?? '';
+        final userKeys = userMatches[left] ?? const <String>[];
+        final correctKeys = correctMatches[left]?.rightKeys ?? const <String>[];
+        final isRowCorrect = userKeys.isNotEmpty &&
+            userKeys.toSet().difference(correctKeys.toSet()).isEmpty &&
+            correctKeys.toSet().difference(userKeys.toSet()).isEmpty;
+        final userLabel = userKeys.isEmpty ? '-' : userKeys.join(', ');
+        final correctLabel = correctKeys.isEmpty ? '-' : correctKeys.join(', ');
+        final color = userKeys.isEmpty ? '#6B7280' : (isRowCorrect ? '#10B981' : '#EF4444');
         buf.write('<div style="display:flex; padding:8px 12px; border-top:1px solid #E5E7EB; font-size:13px;">'
-            '<div style="flex:1; font-weight:600;">$left</div>'
-            '<div style="flex:1; color:$color; font-weight:600;">$u</div>'
-            '<div style="flex:1; color:#10B981; font-weight:600;">$c</div>'
+            '<div style="flex:3; font-weight:600;">$left. $leftText</div>'
+            '<div style="flex:2; color:$color; font-weight:600;">$userLabel</div>'
+            '<div style="flex:2; color:#10B981; font-weight:600;">$correctLabel</div>'
             '</div>');
       }
       buf.write('</div>');

@@ -220,6 +220,41 @@ class AbsentExamQuestionsView extends StatelessWidget {
         : value.toString();
   }
 
+  // Parses "A:P,Q,R(2,0);B:P,Q(2,0);C:R(2,0);D:R(2,0)" into, for each left
+  // key, the list of matched right keys plus its (posMark, negMark).
+  Map<String, ({List<String> rightKeys, String posMark, String negMark})>
+      _parseMatrixMatches(String correctAnswer) {
+    final out = <String, ({List<String> rightKeys, String posMark, String negMark})>{};
+    for (final segment in correctAnswer.split(';')) {
+      final trimmed = segment.trim();
+      if (trimmed.isEmpty) continue;
+      final colonIdx = trimmed.indexOf(':');
+      if (colonIdx == -1) continue;
+      final leftKey = trimmed.substring(0, colonIdx).trim();
+      final rest = trimmed.substring(colonIdx + 1).trim();
+
+      final marksMatch = RegExp(r'\(([^)]*)\)').firstMatch(rest);
+      var rightPart = rest;
+      var posMark = '';
+      var negMark = '';
+      if (marksMatch != null) {
+        rightPart = rest.substring(0, marksMatch.start);
+        final marksParts = marksMatch.group(1)!.split(',');
+        posMark = marksParts.isNotEmpty ? marksParts[0].trim() : '';
+        negMark = marksParts.length > 1 ? marksParts[1].trim() : '';
+      }
+      final rightKeys = rightPart
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (leftKey.isNotEmpty && rightKeys.isNotEmpty) {
+        out[leftKey] = (rightKeys: rightKeys, posMark: posMark, negMark: negMark);
+      }
+    }
+    return out;
+  }
+
   String _buildQuestionHtml(Map<String, dynamic> question, int index) {
     final questionType = question['questionType'] ?? '';
     final questionHtml = question['questionHtml'] ?? '';
@@ -322,7 +357,8 @@ class AbsentExamQuestionsView extends StatelessWidget {
       }
     }
 
-    // Match-the-following / matrix — show both columns with the correct pairing.
+    // Match-the-following / matrix — one left key can map to several right
+    // keys (e.g. "A:P,Q,R(2,0);B:P,Q(2,0);C:R(2,0);D:R(2,0)").
     if (questionType == 'match_the_following' ||
         questionType == 'maq' ||
         questionType == 'matrix' ||
@@ -333,37 +369,48 @@ class AbsentExamQuestionsView extends StatelessWidget {
       final rightColumn = List<Map<String, dynamic>>.from(
           (question['rightColumn'] as List? ?? [])
               .map((e) => Map<String, dynamic>.from(e as Map)));
-      final rightTextByKey = {
-        for (final item in rightColumn) (item['key'] ?? '').toString(): (item['text'] ?? item['textHtml'] ?? '').toString(),
-      };
+      final matches = _parseMatrixMatches(question['correctAnswer']?.toString() ?? '');
 
-      // correctAnswer looks like "A:P(2,0);B:Q(2,0);..." — take the leading
-      // letters of the right-hand side as the matched key.
-      final pairs = <String, String>{};
-      final correctAnswer = question['correctAnswer']?.toString() ?? '';
-      for (final part in correctAnswer.split(';')) {
-        final segments = part.split(':');
-        if (segments.length == 2) {
-          final rightKey = RegExp(r'^[A-Za-z0-9]+').firstMatch(segments[1].trim())?.group(0) ?? '';
-          pairs[segments[0].trim()] = rightKey;
+      if (leftColumn.isNotEmpty || rightColumn.isNotEmpty) {
+        buf.write('<div style="display:flex; gap:16px; margin-bottom:16px;">');
+        for (final column in [leftColumn, rightColumn]) {
+          if (column.isEmpty) continue;
+          buf.write('<div style="flex:1; border:1px solid #E5E7EB; border-radius:8px; overflow:hidden;">');
+          for (final item in column) {
+            final key = item['key'] ?? '';
+            final text = item['text'] ?? item['textHtml'] ?? '';
+            buf.write('''
+<div style="display:flex; gap:8px; padding:10px 12px; border-top:1px solid #E5E7EB;">
+  <div style="font-weight:700; font-size:13px;">$key.</div>
+  <div style="flex:1; font-size:13px;">$text</div>
+</div>
+''');
+          }
+          buf.write('</div>');
         }
+        buf.write('</div>');
       }
 
-      if (leftColumn.isNotEmpty) {
+      if (matches.isNotEmpty) {
         buf.write('<div style="border:1px solid #E5E7EB; border-radius:8px; overflow:hidden;">');
         buf.write('<div style="display:flex; padding:8px 12px; background:#F3F4F6; font-size:12px; font-weight:700;">'
-            '<div style="flex:1;">Column I</div>'
-            '<div style="flex:2;">Column II (Correct Match)</div>'
+            '<div style="flex:1;">Left</div>'
+            '<div style="flex:2;">Correct Matches</div>'
+            '<div style="flex:1;">+ Marks</div>'
+            '<div style="flex:1;">- Neg</div>'
             '</div>');
-        for (final item in leftColumn) {
-          final key = (item['key'] ?? '').toString();
-          final text = item['text'] ?? item['textHtml'] ?? '';
-          final matchedKey = pairs[key] ?? '';
-          final matchedText = rightTextByKey[matchedKey] ?? matchedKey;
+        for (final entry in matches.entries) {
+          final leftKey = entry.key;
+          final match = entry.value;
+          final badges = match.rightKeys.map((k) {
+            return '<span style="display:inline-block; background:#10B981; color:#fff; border-radius:10px; padding:2px 8px; font-size:11px; font-weight:700; margin-right:4px;">$k</span>';
+          }).join();
           buf.write('''
-<div style="display:flex; padding:10px 12px; border-top:1px solid #E5E7EB; font-size:13px;">
-  <div style="flex:1;"><b>$key.</b> $text</div>
-  <div style="flex:2; color:#10B981; font-weight:600;">$matchedKey. $matchedText</div>
+<div style="display:flex; align-items:center; padding:8px 12px; border-top:1px solid #E5E7EB; font-size:13px;">
+  <div style="flex:1;"><span style="display:inline-block; background:#2563EB; color:#fff; border-radius:10px; padding:2px 8px; font-size:11px; font-weight:700;">$leftKey</span></div>
+  <div style="flex:2;">$badges</div>
+  <div style="flex:1; color:#10B981; font-weight:600;">${match.posMark}</div>
+  <div style="flex:1;">${match.negMark}</div>
 </div>
 ''');
         }

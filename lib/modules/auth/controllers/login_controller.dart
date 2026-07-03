@@ -8,7 +8,9 @@ import '../../../core/services/service_locator.dart';
 import '../../../data/services/store_service.dart';
 
 class LoginController extends GetxController {
-  final usernameController = TextEditingController(text: kDebugMode ? '9020642590004' : "");
+  final usernameController = TextEditingController(
+    text: kDebugMode ? '9020642600003' : "",
+  );
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -55,9 +57,9 @@ class LoginController extends GetxController {
   }
 
   void checkLogin() {
-    if (_storage.isLoggedIn) {
-      Session.instance.currentUser = _storage.getUser();
-      Get.offAllNamed(AppRoutes.discussion);
-    }
+    // if (_storage.isLoggedIn) {
+    //   Session.instance.currentUser = _storage.getUser();
+    //   Get.offAllNamed(AppRoutes.discussion);
+    // }
   }
 }
