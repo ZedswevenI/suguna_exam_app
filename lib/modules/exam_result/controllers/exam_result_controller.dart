@@ -56,6 +56,40 @@ class ExamResultController extends GetxController {
             answer['questionHtml'] = await _replaceImagesWithBase64(
                 _stripLatexSpans(answer['questionHtml'] as String));
           }
+          // Passage HTML lives in one of several places depending on backend
+          // shape. Walk every plausible location and image-convert what's
+          // there.
+          Future<void> _processPassageIn(Map container) async {
+            if (container['passageHtml'] is String &&
+                (container['passageHtml'] as String).isNotEmpty) {
+              container['passageHtml'] = await _replaceImagesWithBase64(
+                  _stripLatexSpans(container['passageHtml'] as String));
+            }
+            for (final key in const ['passageData', 'passage']) {
+              final child = container[key];
+              if (child is Map) {
+                final pd = Map<String, dynamic>.from(child);
+                if (pd['passageHtml'] is String &&
+                    (pd['passageHtml'] as String).isNotEmpty) {
+                  pd['passageHtml'] = await _replaceImagesWithBase64(
+                      _stripLatexSpans(pd['passageHtml'] as String));
+                }
+                container[key] = pd;
+              }
+            }
+          }
+
+          await _processPassageIn(answer);
+          if (answer['question'] is Map) {
+            final q = Map<String, dynamic>.from(answer['question'] as Map);
+            await _processPassageIn(q);
+            answer['question'] = q;
+          }
+          if (answer['questionData'] is Map) {
+            final qd = Map<String, dynamic>.from(answer['questionData'] as Map);
+            await _processPassageIn(qd);
+            answer['questionData'] = qd;
+          }
           // Process whichever field carries the solution HTML.
           for (final key in const ['solutionHtml', 'solutionText', 'solution']) {
             if (answer[key] is String && (answer[key] as String).isNotEmpty) {

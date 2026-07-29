@@ -194,16 +194,14 @@ class AbsentExamQuestionsView extends StatelessWidget {
       }
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: SingleChildScrollView(
-          child: TeXView(
-            key: ValueKey('absent_section_${controller.selectedSectionIndex.value}'),
-            loadingWidgetBuilder: (_) => const SizedBox.shrink(),
-            style: const TeXViewStyle(
-              backgroundColor: Colors.white,
-              padding: TeXViewPadding.all(0),
-            ),
-            child: TeXViewDocument(combined.toString()),
+        child: TeXView(
+          key: ValueKey('absent_section_${controller.selectedSectionIndex.value}'),
+          loadingWidgetBuilder: (_) => const SizedBox.shrink(),
+          style: const TeXViewStyle(
+            backgroundColor: Colors.white,
+            padding: TeXViewPadding.all(0),
           ),
+          child: TeXViewDocument(combined.toString()),
         ),
       );
     });
@@ -277,6 +275,48 @@ class AbsentExamQuestionsView extends StatelessWidget {
   </div>
   <div style="padding:14px;">
 ''');
+
+    // Passage (shown above the question if enablePassage is true and there's
+    // passage content). Backend nests it under `passageData.passageHtml`.
+    if (question['enablePassage'] == true || question['passageData'] != null) {
+      final passageData = question['passageData'];
+      String? passageHtml;
+      String? passageTitle;
+      if (passageData is Map) {
+        passageHtml = passageData['passageHtml']?.toString();
+        passageTitle = passageData['title']?.toString();
+      }
+      final directHtml = question['passageHtml']?.toString();
+      final effective = (passageHtml != null && passageHtml.trim().isNotEmpty)
+          ? passageHtml
+          : (directHtml != null && directHtml.trim().isNotEmpty)
+              ? directHtml
+              : null;
+      if (effective != null) {
+        buf.write('''
+<style>
+  .passage-box, .passage-box * {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .passage-box { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .passage-box img { height: auto !important; display: inline-block; }
+  .passage-body {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+</style>
+<div class="passage-box" style="background:#f0f4ff; border-left:4px solid #4F46E5;
+  border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px;
+  line-height:1.7; color:#1e293b; width:100%;">
+  <div style="font-size:11px; font-weight:700; color:#4F46E5;
+    text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Passage${passageTitle != null && passageTitle.isNotEmpty ? ' — $passageTitle' : ''}</div>
+  <div class="passage-body">$effective</div>
+</div>
+''');
+      }
+    }
 
     if (questionHtml.toString().trim().isNotEmpty) {
       buf.write(

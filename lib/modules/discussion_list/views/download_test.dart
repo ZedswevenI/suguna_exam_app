@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../data/models/exam_model.dart';
 import '../controllers/discussion_list_controller.dart';
 
@@ -258,6 +259,16 @@ class _AppHeader extends StatelessWidget {
                         fontSize: 17,
                         letterSpacing: 3,
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'v${AppConstants.appVersion}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   const Spacer(),

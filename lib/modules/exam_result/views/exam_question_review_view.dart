@@ -384,10 +384,76 @@ class ExamQuestionReviewView extends StatelessWidget {
   <div style="padding:14px;">
 ''');
 
+    // Passage — check every plausible location in the answer payload. The
+    // result API may return the passage merged into the answer, nested under
+    // `question`, or referenced by `passageId` at the top level.
+    Map? _pickMap(dynamic v) => v is Map ? v : null;
+    final candidateSources = <Map?>[
+      _pickMap(answer['passageData']),
+      _pickMap(answer['passage']),
+      _pickMap((answer['question'] is Map) ? answer['question']['passageData'] : null),
+      _pickMap((answer['question'] is Map) ? answer['question']['passage'] : null),
+      _pickMap((answer['questionData'] is Map) ? answer['questionData']['passageData'] : null),
+    ];
+    final passageSource = candidateSources.firstWhere(
+      (m) => m != null,
+      orElse: () => null,
+    );
+    final directHtmlCandidates = [
+      answer['passageHtml'],
+      (answer['question'] is Map) ? answer['question']['passageHtml'] : null,
+      (answer['questionData'] is Map) ? answer['questionData']['passageHtml'] : null,
+    ];
+    final directHtml = directHtmlCandidates
+        .whereType<String>()
+        .firstWhere((s) => s.trim().isNotEmpty, orElse: () => '');
+
+    final passageHtml = passageSource?['passageHtml']?.toString() ?? '';
+    final passageTitle = passageSource?['title']?.toString();
+    final effective = passageHtml.trim().isNotEmpty
+        ? passageHtml
+        : (directHtml.trim().isNotEmpty ? directHtml : null);
+
+    if (index == 0) {
+      // One-time diagnostic so it's obvious in logcat whether the API is
+      // sending passage data at all.
+      // ignore: avoid_print
+      print('[PassageDebug] q${index + 1} keys=${answer.keys.toList()} '
+          'passageData=${answer['passageData']} '
+          'passageHtml=${answer['passageHtml']} '
+          'enablePassage=${answer['enablePassage']}');
+    }
+
+    if (effective != null) {
+        buf.write('''
+<style>
+  .passage-box, .passage-box * {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .passage-box { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .passage-box img { height: auto !important; display: inline-block; }
+  .passage-body {
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+</style>
+<div class="passage-box" style="background:#f0f4ff; border-left:4px solid #4F46E5;
+  border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px;
+  line-height:1.7; color:#1e293b; width:100%;">
+  <div style="font-size:11px; font-weight:700; color:#4F46E5;
+    text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Passage${passageTitle != null && passageTitle.isNotEmpty ? ' — $passageTitle' : ''}</div>
+  <div class="passage-body">$effective</div>
+</div>
+''');
+    }
+
     // Question text
     if (questionHtml.toString().trim().isNotEmpty) {
       buf.write('<div style="font-size:14px; line-height:1.6; margin-bottom:16px;">$questionHtml</div>');
     }
+
 
     // MCQ options (single / multiple / single dropdown / multi dropdown)
     if (questionType == 'mcq_single' ||
