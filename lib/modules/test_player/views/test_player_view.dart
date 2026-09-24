@@ -8,6 +8,8 @@ import 'package:suguna_exam_app/modules/test_player/views/question_options_widge
 import 'package:suguna_exam_app/modules/test_player/views/test_review_view.dart';
 
 import '../../../core/routes/app_routes.dart';
+import '../../assignment_instructions/bindings/assignment_instructions_binding.dart';
+import '../../assignment_instructions/views/assignment_instructions_view.dart';
 import '../controllers/test_player_controller.dart';
 import '../controllers/test_player_parser.dart';
 
@@ -57,24 +59,26 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Only a real background (paused/hidden) counts. `inactive` also fires
+    // for transient focus loss — the lock-task pin prompt, IME, system
+    // dialogs — and must not trigger the submit prompt.
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
       _wasBackgrounded = true;
       return;
     }
     if (state == AppLifecycleState.resumed && _wasBackgrounded) {
       _wasBackgrounded = false;
+      // Came back from background (Home / Recents / task switch) — same
+      // behaviour as Back. The controller defers the dialog slightly so it
+      // never opens inside the lifecycle callback itself.
       _maybeOpenSubmitDialog();
     }
   }
 
   void _maybeOpenSubmitDialog() {
-    if (Get.isDialogOpen ?? false) return;
     try {
-      final controller = TestPlayerController.to;
-      if (controller.isTestCompleted.value) return;
-      controller.completeTest();
+      TestPlayerController.to.openSubmitConfirmation();
     } catch (_) {}
   }
 
@@ -99,14 +103,14 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
             child: Scaffold(
               backgroundColor: const Color(0xFFF5F7FA),
               body: SafeArea(
-                child: Column(
+                child: Stack(
                   children: [
-                    _buildTopBar(controller),
-                    Obx(() {
-                      return Expanded(
-                        child: Stack(
-                          children: [
-                            Row(
+                    Column(
+                      children: [
+                        _buildTopBar(controller),
+                        Obx(() {
+                          return Expanded(
+                            child: Row(
                               children: [
                                 Expanded(
                                   child: IgnorePointer(
@@ -117,34 +121,17 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                                 _buildQuestionPalette(controller),
                               ],
                             ),
-                            if (controller.isSubmitting.value)
-                              const Positioned.fill(
-                                child: ColoredBox(
-                                  color: Color(0x99000000),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CircularProgressIndicator(
-                                            color: Colors.white),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'Submitting your exam…',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    }),
+                          );
+                        }),
+                      ],
+                    ),
+                    // Full-screen blocking loader while the submit API is in
+                    // flight. Sits above the top bar too, so Submit Test can't
+                    // be tapped twice. Kept inline (not Get.dialog) because
+                    // dialogs can crash under MDM lock-task mode.
+                    Obx(() => controller.isSubmitting.value
+                        ? const Positioned.fill(child: _SubmittingOverlay())
+                        : const SizedBox.shrink()),
                   ],
                 ),
               ),
@@ -244,6 +231,22 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
             );
           }),
           const SizedBox(width: 16),
+          // View the exam instructions again mid-exam (read-only; the
+          // timer keeps running while it's open).
+          OutlinedButton.icon(
+            onPressed: () => _openInstructions(controller),
+            icon: const Icon(Icons.info_outline_rounded, size: 18),
+            label: const Text('Instructions'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           // OutlinedButton.icon(
           //   onPressed: () {
           //     _showRetestConfirmation(controller);
@@ -1604,6 +1607,17 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
     );
   }
 
+  /// Pushes the instructions screen in read-only mode on top of the player.
+  /// The player route (and its controller/timer) stays alive underneath.
+  void _openInstructions(TestPlayerController controller) {
+    if (controller.isSubmitting.value) return;
+    Get.to(
+      () => const AssignmentInstructionsView(startTest: false),
+      binding: AssignmentInstructionsBinding(),
+      arguments: {'selectedQuestion': controller.selectedQuestions},
+    );
+  }
+
   void _showRetestConfirmation(TestPlayerController controller) {
     Get.dialog(
       AlertDialog(
@@ -1802,6 +1816,71 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                 ],
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Modal loader shown while the exam submission request is in flight.
+/// Absorbs all taps and blocks the back gesture so the student can't
+/// navigate or re-submit mid-request.
+class _SubmittingOverlay extends StatelessWidget {
+  const _SubmittingOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: AbsorbPointer(
+        child: ColoredBox(
+          color: const Color(0xB3000000),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 4,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Submitting your exam…',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Please wait, do not close the app.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

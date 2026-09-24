@@ -308,7 +308,7 @@ class ExamResultController extends GetxController {
         // Check if any section has meaningful totalQuestions data
         final hasMeaningfulData = sections.any((s) =>
             ((s['totalQuestions'] as num?)?.toInt() ?? 0) > 0);
-        if (hasMeaningfulData) return sections;
+        if (hasMeaningfulData) return _withPartialCounts(sections);
       }
     } catch (e) {
       print('⚠️ sectionResults parse error: $e');
@@ -362,7 +362,7 @@ class ExamResultController extends GetxController {
       final sectionId = entry.key;
       final sectionAnswers = entry.value;
 
-      int correct = 0, wrong = 0, skipped = 0, answered = 0;
+      int correct = 0, wrong = 0, partial = 0, skipped = 0, answered = 0;
       double obtainedMarks = 0, sectionTotalMarks = 0;
       int timeTaken = 0;
 
@@ -374,7 +374,9 @@ class ExamResultController extends GetxController {
           skipped++;
         } else {
           answered++;
-          if (a['isCorrect'] == true) {
+          if (_isPartialAnswer(a)) {
+            partial++;
+          } else if (a['isCorrect'] == true) {
             correct++;
           } else {
             wrong++;
@@ -394,6 +396,7 @@ class ExamResultController extends GetxController {
         'totalQuestions': sectionAnswers.length,
         'correctCount': correct,
         'wrongCount': wrong,
+        'partialCount': partial,
         'skippedCount': skipped,
         'answeredCount': answered,
         'obtainedMarks': obtainedMarks,
@@ -403,14 +406,50 @@ class ExamResultController extends GetxController {
     }).toList();
   }
 
+  /// Partial credit: attempted, but the backend graded it neither fully
+  /// correct nor wrong (`isCorrect == null`). Same rule as the question table
+  /// and the Solutions screen.
+  bool _isPartialAnswer(Map<String, dynamic> a) =>
+      a['isSkipped'] != true && a['isCorrect'] == null;
+
+  /// The backend's sectionResults carry no partial count, so derive it from
+  /// the answers. If the backend folded partials into wrongCount (i.e.
+  /// correct + wrong + skipped already equals total), pull them back out so
+  /// the columns still add up.
+  List<Map<String, dynamic>> _withPartialCounts(
+      List<Map<String, dynamic>> sections) {
+    final all = answers;
+    return sections.map((section) {
+      final keys = _sectionMatchKeys(section);
+      final partial = all
+          .where((a) =>
+              keys.contains((a['sectionId'] ?? '').toString()) &&
+              _isPartialAnswer(a))
+          .length;
+      final enriched = Map<String, dynamic>.from(section);
+      enriched['partialCount'] = partial;
+      if (partial > 0) {
+        final total = (section['totalQuestions'] as num?)?.toInt() ?? 0;
+        final correct = (section['correctCount'] as num?)?.toInt() ?? 0;
+        final wrong = (section['wrongCount'] as num?)?.toInt() ?? 0;
+        final skipped = (section['skippedCount'] as num?)?.toInt() ?? 0;
+        if (total > 0 && correct + wrong + skipped == total) {
+          enriched['wrongCount'] = (wrong - partial).clamp(0, wrong);
+        }
+      }
+      return enriched;
+    }).toList();
+  }
+
   // ── Statistics ─────────────────────────────────────────────────────────────
 
   Map<String, dynamic> getOverallStats() {
-    int total = 0, correct = 0, wrong = 0, skipped = 0;
+    int total = 0, correct = 0, wrong = 0, partial = 0, skipped = 0;
     for (var section in sectionResults) {
       total += (section['totalQuestions'] as num?)?.toInt() ?? 0;
       correct += (section['correctCount'] as num?)?.toInt() ?? 0;
       wrong += (section['wrongCount'] as num?)?.toInt() ?? 0;
+      partial += (section['partialCount'] as num?)?.toInt() ?? 0;
       skipped += (section['skippedCount'] as num?)?.toInt() ?? 0;
     }
     final percentage = total > 0 ? (correct / total * 100) : 0.0;
@@ -418,6 +457,7 @@ class ExamResultController extends GetxController {
       'total': total,
       'correct': correct,
       'wrong': wrong,
+      'partial': partial,
       'skipped': skipped,
       'percentage': percentage,
     };
@@ -441,6 +481,7 @@ class ExamResultController extends GetxController {
       final totalQ = (section['totalQuestions'] as num?)?.toInt() ?? 0;
       final correct = (section['correctCount'] as num?)?.toInt() ?? 0;
       final wrong = (section['wrongCount'] as num?)?.toInt() ?? 0;
+      final partial = (section['partialCount'] as num?)?.toInt() ?? 0;
       final skipped = (section['skippedCount'] as num?)?.toInt() ?? 0;
       final obtained = (section['obtainedMarks'] as num?)?.toDouble() ?? 0.0;
       final sectionTotal = (section['totalMarks'] as num?)?.toDouble() ?? 0.0;
@@ -456,6 +497,7 @@ class ExamResultController extends GetxController {
         'totalQuestions': totalQ,
         'correct': correct,
         'wrong': wrong,
+        'partial': partial,
         'skipped': skipped,
         'obtainedMarks': obtained,
         'totalMarks': sectionTotal,
@@ -556,19 +598,7 @@ class ExamResultController extends GetxController {
   /// and a plain id string.
   Set<String> get selectedSectionMatchKeys {
     if (selectedSectionIndex.value >= sectionResults.length) return {};
-    final section = sectionResults[selectedSectionIndex.value];
-    final keys = <String>{};
-    final sectionId = section['sectionId'];
-    if (sectionId != null) keys.add(sectionId.toString());
-    final subjectId = section['subjectId'];
-    if (subjectId is Map) {
-      final id = subjectId['_id'];
-      if (id != null) keys.add(id.toString());
-    } else if (subjectId is String) {
-      keys.add(subjectId);
-    }
-    keys.removeWhere((k) => k.isEmpty);
-    return keys;
+    return _sectionMatchKeys(sectionResults[selectedSectionIndex.value]);
   }
 
   String? get selectedSectionId {
@@ -590,6 +620,9 @@ class ExamResultController extends GetxController {
   void selectSection(int index) {
     selectedSectionIndex.value = index;
     expandedSolutions.clear();
+    // A tab switch re-renders the shared webview, which otherwise keeps the
+    // previous tab's scroll offset — start the new tab from its first question.
+    pendingReviewScrollIndex = 0;
   }
 
   void toggleSolution(int index) {
@@ -611,10 +644,51 @@ class ExamResultController extends GetxController {
 
   Map<String, dynamic> get currentReviewAnswer => getAnswer(reviewIndex.value);
 
+  /// Local index (within [filteredAnswers]) the review screen should scroll
+  /// to once its webview has rendered. Consumed (reset to null) by the view.
+  int? pendingReviewScrollIndex;
+
+  /// Called from the result table's "View" link with the index into [answers].
+  /// Switches the review screen to the section that holds that question and
+  /// queues a scroll so the exact question is shown, not the top of the list.
   void goToReviewQuestion(int index) {
-    if (index >= 0 && index < answers.length) {
-      reviewIndex.value = index;
+    if (index < 0 || index >= answers.length) return;
+    reviewIndex.value = index;
+
+    final answer = answers[index];
+    final answerSectionId = (answer['sectionId'] ?? '').toString();
+
+    // Find the section tab whose keys match this answer's sectionId.
+    final sections = sectionResults;
+    int sectionIdx = -1;
+    for (var i = 0; i < sections.length; i++) {
+      if (_sectionMatchKeys(sections[i]).contains(answerSectionId)) {
+        sectionIdx = i;
+        break;
+      }
     }
+    if (sectionIdx != -1 && sectionIdx != selectedSectionIndex.value) {
+      selectSection(sectionIdx);
+    }
+
+    // Position of this answer inside the (now) filtered list.
+    final local = filteredAnswers.indexWhere((a) => identical(a, answer));
+    pendingReviewScrollIndex = local != -1 ? local : null;
+  }
+
+  Set<String> _sectionMatchKeys(Map<String, dynamic> section) {
+    final keys = <String>{};
+    final sectionId = section['sectionId'];
+    if (sectionId != null) keys.add(sectionId.toString());
+    final subjectId = section['subjectId'];
+    if (subjectId is Map) {
+      final id = subjectId['_id'];
+      if (id != null) keys.add(id.toString());
+    } else if (subjectId is String) {
+      keys.add(subjectId);
+    }
+    keys.removeWhere((k) => k.isEmpty);
+    return keys;
   }
 
   String getQuestionTypeName(String type) {

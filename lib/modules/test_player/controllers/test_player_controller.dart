@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:suguna_exam_app/data/services/sessions.dart';
@@ -83,6 +84,32 @@ class TestPlayerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Native reports Home / Recents presses mid-exam (onUserLeaveHint).
+    // Treat it exactly like Back: open the submit confirmation.
+    _lockChannel.setMethodCallHandler((call) async {
+      if (call.method == 'homePressed') {
+        print('exam_lock: homePressed received');
+        openSubmitConfirmation();
+      }
+      return null;
+    });
+  }
+
+  /// Opens the "type SUBMIT" confirmation if it isn't already showing and
+  /// the exam is still in progress. Shared by Back, Home and app-resume.
+  /// Slightly deferred so it never runs inside a platform/lifecycle callback.
+  void openSubmitConfirmation() {
+    Future<void>.delayed(const Duration(milliseconds: 300), () {
+      if (isClosed) return;
+      if (Get.isDialogOpen ?? false) return;
+      if (isTestCompleted.value || isSubmitting.value) return;
+      if (Get.context == null) return;
+      try {
+        completeTest();
+      } catch (e) {
+        print('openSubmitConfirmation failed: $e');
+      }
+    });
   }
 
   @override
@@ -613,9 +640,9 @@ class TestPlayerController extends GetxController {
     question.textAnswer = null;
     numericalController.clear(); // 👈 clears UI instantly
 
-    if (question.status == QuestionStatus.answeredAndMarked) {
-      question.status = QuestionStatus.markedForReview;
-    }
+    // Clearing resets the question completely — whatever its previous
+    // status, it goes back to Not Visited in the palette.
+    question.status = QuestionStatus.notVisited;
     updateView();
   }
 
@@ -848,6 +875,7 @@ class TestPlayerController extends GetxController {
     // The new route (e.g. ExamAnalysisController) unlocks once it's mounted.
     _timer?.cancel();
     _stopBlinking();
+    _lockChannel.setMethodCallHandler(null);
     super.onClose();
   }
 
@@ -1841,13 +1869,25 @@ class TestPlayerController extends GetxController {
   void _extractSubjects() {
     final seen = <String>{};
     availableSubjects = [];
+    // Lowest section sortOrder seen for each subject; subjects without one
+    // (older cached exams, assignments) keep their order of appearance.
+    final sortKey = <String, int>{};
+    var appearance = 0;
     for (var cat in categories) {
       for (var q in cat.questions) {
-        if (q.subject != null && seen.add(q.subject!.name)) {
-          availableSubjects.add(q.subject!);
+        final subject = q.subject;
+        if (subject == null) continue;
+        if (seen.add(subject.name)) {
+          availableSubjects.add(subject);
+          sortKey[subject.name] = q.sectionSortOrder ?? (1 << 20) + appearance++;
+        } else if (q.sectionSortOrder != null) {
+          sortKey[subject.name] =
+              math.min(sortKey[subject.name]!, q.sectionSortOrder!);
         }
       }
     }
+    availableSubjects.sort(
+        (a, b) => sortKey[a.name]!.compareTo(sortKey[b.name]!));
     if (availableSubjects.isNotEmpty) {
       setSubjectFilter(availableSubjects.first.name);
     }

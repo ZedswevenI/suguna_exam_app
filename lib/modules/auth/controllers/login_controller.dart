@@ -9,7 +9,7 @@ import '../../../data/services/store_service.dart';
 
 class LoginController extends GetxController {
   final usernameController = TextEditingController(
-    text: kDebugMode ? '9020642600087' : "",
+    text: kDebugMode ? '9020642480004' : "",
   );
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();

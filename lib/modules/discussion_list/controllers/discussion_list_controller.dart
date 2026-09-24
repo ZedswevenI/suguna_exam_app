@@ -180,15 +180,23 @@ class DiscussionListController extends GetxController {
 
       final data = response['data'];
 
-      // Flatten all questions from sections into a single list
+      // Flatten all questions from sections into a single list, walking the
+      // sections in their configured `sortOrder` so question numbering and
+      // the player's subject tabs follow the paper's intended order.
       final List<dynamic> allQuestions = [];
-      final sections = data['sections'] as List<dynamic>? ?? [];
+      final sections = List<dynamic>.from(data['sections'] as List<dynamic>? ?? []);
+      sections.sort((a, b) {
+        final sa = (a['sortOrder'] as num?)?.toInt() ?? 0;
+        final sb = (b['sortOrder'] as num?)?.toInt() ?? 0;
+        return sa.compareTo(sb);
+      });
       for (final section in sections) {
         final questions = section['questions'] as List<dynamic>? ?? [];
         for (final q in questions) {
           q['sectionId'] = section['sectionId'];
           q['sectionName'] = section['sectionName'];
           q['sectionCode'] = section['sectionCode'];
+          q['sectionSortOrder'] = section['sortOrder'];
           allQuestions.add(q);
         }
       }
@@ -410,6 +418,7 @@ class DiscussionListController extends GetxController {
             await _replaceImagesWithBase64(question['solutionHtml']);
       }
     }
+
     return questions;
   }
 
@@ -426,6 +435,8 @@ class DiscussionListController extends GetxController {
       return;
     }
 
+
+
     // If result is visible, go to analysis
     if (exam.isResultVisible) {
       Get.toNamed(AppRoutes.examResult, arguments: {
@@ -438,6 +449,7 @@ class DiscussionListController extends GetxController {
       });
       return;
     }
+
 
     // If already attempted but result not yet published — show analysis screen.
     if (exam.isAttempted) {
@@ -571,7 +583,6 @@ class DiscussionListController extends GetxController {
       Get.snackbar('Error', 'Please enter a Passcode');
       return;
     }
-
 
 
     // Find exam by examCode matching testId

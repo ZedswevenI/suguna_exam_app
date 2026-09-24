@@ -20,21 +20,7 @@ class QuestionOptionsWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Question ${question.number}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
+              _buildQuestionHeader(question),
               const SizedBox(height: 12),
               _buildQuestionWidget(question,controller),
             ],
@@ -44,6 +30,81 @@ class QuestionOptionsWidget extends StatelessWidget {
     });
   }
 
+
+  /// "Question N" chip followed by the marking scheme for that question
+  /// (e.g. +4 / -1), so the student always knows what's at stake.
+  Widget _buildQuestionHeader(Question question) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Question ${question.number}',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'Marks:',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(width: 8),
+        _buildMarkChip(
+          label: '+${_formatMarks(question.positiveMarks)}',
+          color: const Color(0xFF059669),
+          bgColor: const Color(0xFFD1FAE5),
+        ),
+        const SizedBox(width: 6),
+        _buildMarkChip(
+          label: '-${_formatMarks(question.negativeMarks)}',
+          color: const Color(0xFFDC2626),
+          bgColor: const Color(0xFFFEE2E2),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMarkChip({
+    required String label,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  /// 4.0 → "4", 1.5 → "1.5"
+  String _formatMarks(double marks) {
+    return marks == marks.truncateToDouble()
+        ? marks.toInt().toString()
+        : marks.toString();
+  }
 
   Widget _buildQuestionWidget(Question question,TestPlayerController controller) {
     switch (question.type) {
@@ -122,8 +183,8 @@ class QuestionOptionsWidget extends StatelessWidget {
               style: TeXViewStyle.fromCSS('''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
 -webkit-tap-highlight-color: transparent;
-border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
-background-color:${isSelected ? '#eff6ff' : 'transparent'};
+border:1px solid #e5e7eb;
+background-color:transparent;
 transition: all 0.2s ease;
               '''),
             ),
@@ -198,8 +259,8 @@ transition: all 0.2s ease;
               style: TeXViewStyle.fromCSS('''
 padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer;
 -webkit-tap-highlight-color: transparent;
-border:${isSelected ? '2px solid #2563eb' : '1px solid #e5e7eb'};
-background-color:${isSelected ? '#eff6ff' : 'transparent'};
+border:1px solid #e5e7eb;
+background-color:transparent;
               '''),
             ),
           );
@@ -217,6 +278,8 @@ background-color:${isSelected ? '#eff6ff' : 'transparent'};
       question: question,
       controller: controller,
       effectiveHtml: _effectiveHtml(question, controller),
+      questionFontSize: controller.getQuestionFontSize(),
+      optionFontSize: controller.getOptionFontSize(),
     );
   }
 
@@ -800,11 +863,15 @@ class _MAQView extends StatefulWidget {
   final Question question;
   final TestPlayerController controller;
   final String effectiveHtml;
+  final double questionFontSize;
+  final double optionFontSize;
   const _MAQView({
     super.key,
     required this.question,
     required this.controller,
     required this.effectiveHtml,
+    required this.questionFontSize,
+    required this.optionFontSize,
   });
 
   @override
@@ -832,6 +899,19 @@ class _MAQViewState extends State<_MAQView> {
     _rebuildHeader();
   }
 
+  @override
+  void didUpdateWidget(_MAQView old) {
+    super.didUpdateWidget(old);
+    // Only reload the webview when something that affects the rendered
+    // header actually changed (A / A+ / A++ or the HTML itself) — cell taps
+    // must not trigger this, or the TeXView flickers.
+    if (old.questionFontSize != widget.questionFontSize ||
+        old.optionFontSize != widget.optionFontSize ||
+        old.effectiveHtml != widget.effectiveHtml) {
+      _rebuildHeader();
+    }
+  }
+
   void _rebuildHeader() {
     final allPairs = widget.question.matchPairs ?? const <MatchPair>[];
     _pairs = allPairs.where((p) => !_isEmptyText(p.leftText)).toList();
@@ -846,8 +926,8 @@ class _MAQViewState extends State<_MAQView> {
       _rightTexts.add(t);
     }
 
-    final qFs = widget.controller.getQuestionFontSize();
-    final oFs = widget.controller.getOptionFontSize();
+    final qFs = widget.questionFontSize;
+    final oFs = widget.optionFontSize;
 
     final leftItemsHtml = StringBuffer();
     for (final pair in _pairs) {

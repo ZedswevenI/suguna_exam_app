@@ -83,6 +83,8 @@ class Question {
   final String? questionHtml;
   final String? passageHtml;
   final String? sectionId;
+  /// Section `sortOrder` from the exam API; used to order subject tabs.
+  final int? sectionSortOrder;
   bool isInteger;
 
   // ✅ Correct Answer Storage
@@ -112,6 +114,7 @@ class Question {
     this.questionHtml,
     this.passageHtml,
     this.sectionId,
+    this.sectionSortOrder,
     this.isInteger = false,
     this.subject,
     this.correctAnswer,
@@ -368,8 +371,10 @@ class TestApiParser {
       final List<dynamic> questionsJson =
           examData['questions'] as List<dynamic>? ?? [];
 
-      // Group by question type for tab categories (same as assignments)
-      final Map<QuestionType, List<Question>> questionsByType = {};
+      // Group into tab categories using the fixed exam ordering
+      // (SCO → MCQ (Multiple Correct) → Integer → Numerical →
+      // Comprehension → Match the Following → others).
+      final Map<_ExamCategory, List<Question>> questionsByCategory = {};
 
       for (int i = 0; i < questionsJson.length; i++) {
         final qJson = Map<String, dynamic>.from(questionsJson[i] as Map);
@@ -393,6 +398,7 @@ class TestApiParser {
         final parsedType = _parseQuestionType(questionTypeFromApi);
 
         final sectionId = qJson['sectionId']?.toString();
+        final sectionSortOrder = (qJson['sectionSortOrder'] as num?)?.toInt();
 
         final rawOptions = qJson['questionOptions'] as List<dynamic>? ?? [];
         final passageData = qJson['passageData'] as Map<String, dynamic>?;
@@ -401,6 +407,7 @@ class TestApiParser {
           number: i + 1,
           subject: subject,
           sectionId: sectionId,
+          sectionSortOrder: sectionSortOrder,
           positiveMarks: _parseToDouble(qJson['positiveMarks'], defaultValue: 4),
           negativeMarks: _parseToDouble(qJson['negativeMarks'], defaultValue: 1),
           text: qJson['questionText'] as String? ?? '',
@@ -423,24 +430,31 @@ class TestApiParser {
           correctAnswersMap['question_${i + 1}'] = correctAnswer;
         }
 
-        questionsByType.putIfAbsent(parsedType, () => []).add(question);
+        final category = _examCategoryFor(
+          type: parsedType,
+          hasPassage: (question.passageHtml ?? '').trim().isNotEmpty,
+        );
+        questionsByCategory.putIfAbsent(category, () => []).add(question);
       }
 
       final List<QuestionCategory> categories = [];
       int categoryIndex = 0;
 
-      questionsByType.forEach((type, questions) {
+      // Emit tabs in enum (display) order, skipping empty ones.
+      for (final kind in _ExamCategory.values) {
+        final questions = questionsByCategory[kind];
+        if (questions == null || questions.isEmpty) continue;
         categories.add(
           QuestionCategory(
             id: 'category_$categoryIndex',
-            name: _getCategoryNameFromType(type),
+            name: kind.label,
             subject: questions.first.subject,
             questionCount: questions.length,
             questions: questions,
           ),
         );
         categoryIndex++;
-      });
+      }
 
       try {
         final controller = Get.find<TestPlayerController>();
@@ -453,6 +467,37 @@ class TestApiParser {
     } catch (e) {
       print('Error parsing exam response: $e');
       return [];
+    }
+  }
+
+  /// Maps a parsed exam question to its tab category. Comprehension = any
+  /// question that carries passage HTML; everything else is by type.
+  static _ExamCategory _examCategoryFor({
+    required QuestionType type,
+    required bool hasPassage,
+  }) {
+    if (hasPassage) return _ExamCategory.comprehension;
+    switch (type) {
+      case QuestionType.mcqSingle:
+        return _ExamCategory.singleCorrect;
+      case QuestionType.mcqMultiple:
+        return _ExamCategory.multiCorrect;
+      case QuestionType.integer:
+        return _ExamCategory.integer;
+      case QuestionType.numerical:
+        return _ExamCategory.numerical;
+      case QuestionType.matchTheFollowing:
+        return _ExamCategory.matchTheFollowing;
+      case QuestionType.trueFalse:
+        return _ExamCategory.trueFalse;
+      case QuestionType.singleDropdown:
+        return _ExamCategory.singleDropdown;
+      case QuestionType.multiDropdown:
+        return _ExamCategory.multiDropdown;
+      case QuestionType.textType:
+        return _ExamCategory.shortAnswer;
+      case QuestionType.subjective:
+        return _ExamCategory.subjective;
     }
   }
 
@@ -644,4 +689,23 @@ class TestApiParser {
         .replaceAll('cosec−1', r'\cosec^{-1}');
   }
 
+}
+
+/// Tab categories for the exam player, in display order. Labels match the
+/// existing type names from [TestApiParser._getCategoryNameFromType].
+enum _ExamCategory {
+  singleCorrect('SCO '),
+  multiCorrect('MCQ (Multiple Correct)'),
+  integer('Integer'),
+  numerical('Numerical'),
+  comprehension('Comprehension Type'),
+  matchTheFollowing('Match the Following'),
+  trueFalse('True / False'),
+  singleDropdown('Dropdown (Single Select)'),
+  multiDropdown('Dropdown (Multiple Select)'),
+  shortAnswer('Short Answer'),
+  subjective('Subjective');
+
+  const _ExamCategory(this.label);
+  final String label;
 }

@@ -53,6 +53,7 @@ class ExamQuestionReviewView extends StatelessWidget {
                           backgroundColor: Colors.white,
                           padding: TeXViewPadding.all(0),
                         ),
+                        onRenderFinished: (_) => _scrollToPendingQuestion(controller),
                         child: TeXViewDocument(combined.toString()),
                       ),
                     );
@@ -64,6 +65,39 @@ class ExamQuestionReviewView extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// After the webview has laid out the section, jump to the question the
+  /// user tapped "View" on (if any). Everything is rendered in the shared
+  /// flutter_tex webview, so the scroll has to happen inside it via JS.
+  void _scrollToPendingQuestion(ExamResultController controller) {
+    final target = controller.pendingReviewScrollIndex;
+    if (target == null) return;
+    controller.pendingReviewScrollIndex = null;
+    try {
+      // The shared webview keeps its previous scroll offset when this screen
+      // is re-entered, and the platform view may not be attached yet when the
+      // first render callback arrives — so a single scrollIntoView can be
+      // overridden. Keep re-applying inside the webview until the target is
+      // actually at the top (or give up after ~3s).
+      TeXRenderingServer.teXRenderingController.webViewControllerPlus
+          .runJavaScript(
+        '(function(){'
+        'var tries=0,stable=0;'
+        'function go(){'
+        "var e=document.getElementById('review_q_$target');"
+        'if(e){var top=e.getBoundingClientRect().top;'
+        "if(Math.abs(top)<2){stable++;}else{stable=0;e.scrollIntoView({block:'start'});}}"
+        'tries++;'
+        'if(stable<2&&tries<15){setTimeout(go,200);}'
+        '}'
+        'go();'
+        '})();',
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('review scroll failed: $e');
+    }
   }
 
   // ============================================================
@@ -371,7 +405,7 @@ class ExamQuestionReviewView extends StatelessWidget {
 
     // Question card container
     buf.write('''
-<div style="border:1px solid #E5E7EB; border-radius:8px; margin-bottom:16px; background:#fff;">
+<div id="review_q_$index" style="border:1px solid #E5E7EB; border-radius:8px; margin-bottom:16px; background:#fff;">
   <!-- Info bar -->
   <div style="padding:10px 14px; background:#F9FAFB; border-bottom:1px solid #E5E7EB; border-radius:8px 8px 0 0; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
     <span style="font-weight:700; font-size:13px;">Question. ${index + 1}</span>

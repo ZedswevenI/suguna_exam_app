@@ -580,6 +580,13 @@ class ExamResultView extends StatelessWidget {
                                 color: Colors.white))),
                     Expanded(
                         flex: 2,
+                        child: Text('Partial',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white))),
+                    Expanded(
+                        flex: 2,
                         child: Text('Skipped',
                             style: TextStyle(
                                 fontSize: 14,
@@ -648,6 +655,14 @@ class ExamResultView extends StatelessWidget {
                             flex: 2,
                             child: Text(
                               '${section['wrong']}',
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              '${section['partial']}',
                               style: const TextStyle(
                                   fontSize: 14, color: Colors.white),
                             ),
@@ -740,6 +755,16 @@ class ExamResultView extends StatelessWidget {
             flex: 2,
             child: Text(
               '${stats['wrong']}',
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '${stats['partial']}',
               style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1030,6 +1055,7 @@ class ExamResultView extends StatelessWidget {
             children: [
               _buildLegendItem('Correct', const Color(0xFF4CAF50)),
               _buildLegendItem('Wrong', const Color(0xFFE53935)),
+              _buildLegendItem('Partial', const Color(0xFF0EA5E9)),
               _buildLegendItem('Skipped', const Color(0xFFFFA726)),
             ],
           ),
@@ -1118,6 +1144,8 @@ class ExamResultView extends StatelessWidget {
                       _buildLegendItem('Correct', const Color(0xFF4CAF50)),
                       const SizedBox(width: 20),
                       _buildLegendItem('Wrong', const Color(0xFFE53935)),
+                      const SizedBox(width: 20),
+                      _buildLegendItem('Partial', const Color(0xFF0EA5E9)),
                       const SizedBox(width: 20),
                       _buildLegendItem('Skipped', const Color(0xFFFFA726)),
                     ],
@@ -1602,51 +1630,36 @@ class _SectionDonutPainter extends CustomPainter {
     canvas.drawArc(rect, 0, 2 * math.pi, false, bgPaint);
 
     // Aggregate totals across all sections
-    int totalCorrect = 0, totalWrong = 0, totalSkipped = 0;
+    int totalCorrect = 0, totalWrong = 0, totalPartial = 0, totalSkipped = 0;
     for (var s in sections) {
       totalCorrect += (s['correct'] as num?)?.toInt() ?? 0;
       totalWrong += (s['wrong'] as num?)?.toInt() ?? 0;
+      totalPartial += (s['partial'] as num?)?.toInt() ?? 0;
       totalSkipped += (s['skipped'] as num?)?.toInt() ?? 0;
     }
 
-    final totalQ = totalCorrect + totalWrong + totalSkipped;
+    final totalQ = totalCorrect + totalWrong + totalPartial + totalSkipped;
     if (totalQ == 0) return;
 
+    // Slice order matches the legend: Correct, Wrong, Partial, Skipped.
+    final slices = <(int, Color)>[
+      (totalCorrect, const Color(0xFF4CAF50)), // green
+      (totalWrong, const Color(0xFFE53935)), // red
+      (totalPartial, const Color(0xFF0EA5E9)), // sky — same as PARTIAL badge
+      (totalSkipped, const Color(0xFFFFA726)), // amber
+    ];
+
     double startAngle = -math.pi / 2;
-
-    // Correct arc (green)
-    if (totalCorrect > 0) {
-      final angle = (totalCorrect / totalQ) * 2 * math.pi;
+    for (final (count, color) in slices) {
+      if (count <= 0) continue;
+      final angle = (count / totalQ) * 2 * math.pi;
       final paint = Paint()
-        ..color = const Color(0xFF4CAF50)
+        ..color = color
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.butt;
       canvas.drawArc(rect, startAngle, angle, false, paint);
       startAngle += angle;
-    }
-
-    // Wrong arc (red)
-    if (totalWrong > 0) {
-      final angle = (totalWrong / totalQ) * 2 * math.pi;
-      final paint = Paint()
-        ..color = const Color(0xFFE53935)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.butt;
-      canvas.drawArc(rect, startAngle, angle, false, paint);
-      startAngle += angle;
-    }
-
-    // Skipped arc (amber)
-    if (totalSkipped > 0) {
-      final angle = (totalSkipped / totalQ) * 2 * math.pi;
-      final paint = Paint()
-        ..color = const Color(0xFFFFA726)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.butt;
-      canvas.drawArc(rect, startAngle, angle, false, paint);
     }
   }
 
