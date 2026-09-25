@@ -1905,6 +1905,7 @@ class TestPlayerController extends GetxController {
       return QuestionCategory(
         id: cat.id,
         name: cat.name,
+        subject: cat.subject,
         questionCount: filtered.length,
         questions: filtered,
       );

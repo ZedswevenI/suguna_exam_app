@@ -371,10 +371,16 @@ class TestApiParser {
       final List<dynamic> questionsJson =
           examData['questions'] as List<dynamic>? ?? [];
 
-      // Group into tab categories using the fixed exam ordering
-      // (SCO → MCQ (Multiple Correct) → Integer → Numerical →
-      // Comprehension → Match the Following → others).
-      final Map<_ExamCategory, List<Question>> questionsByCategory = {};
+      // Group by SUBJECT first, then by question-type category. Each tab
+      // therefore belongs to exactly one subject, so the subject filter,
+      // the tab counts and next/previous navigation all stay inside the
+      // selected subject.
+      final Map<String, Map<_ExamCategory, List<Question>>> bySubject = {};
+      // Subject display order: section sortOrder when present, else the
+      // order the subjects first appear in the paper.
+      final Map<String, int> subjectOrder = {};
+      final Map<String, Subject?> subjectLookup = {};
+      var appearance = 0;
 
       for (int i = 0; i < questionsJson.length; i++) {
         final qJson = Map<String, dynamic>.from(questionsJson[i] as Map);
@@ -434,26 +440,45 @@ class TestApiParser {
           type: parsedType,
           hasPassage: (question.passageHtml ?? '').trim().isNotEmpty,
         );
-        questionsByCategory.putIfAbsent(category, () => []).add(question);
+
+        final subjectKey = subject?.name ?? 'General';
+        subjectLookup.putIfAbsent(subjectKey, () => subject);
+        final order = sectionSortOrder ?? ((1 << 20) + appearance);
+        subjectOrder.update(subjectKey, (v) => v < order ? v : order,
+            ifAbsent: () {
+          appearance++;
+          return order;
+        });
+        bySubject
+            .putIfAbsent(subjectKey, () => {})
+            .putIfAbsent(category, () => [])
+            .add(question);
       }
 
       final List<QuestionCategory> categories = [];
       int categoryIndex = 0;
 
-      // Emit tabs in enum (display) order, skipping empty ones.
-      for (final kind in _ExamCategory.values) {
-        final questions = questionsByCategory[kind];
-        if (questions == null || questions.isEmpty) continue;
-        categories.add(
-          QuestionCategory(
-            id: 'category_$categoryIndex',
-            name: kind.label,
-            subject: questions.first.subject,
-            questionCount: questions.length,
-            questions: questions,
-          ),
-        );
-        categoryIndex++;
+      final subjectKeys = bySubject.keys.toList()
+        ..sort((a, b) => subjectOrder[a]!.compareTo(subjectOrder[b]!));
+
+      // Emit tabs subject by subject, each subject's types in enum
+      // (display) order, skipping empty ones.
+      for (final subjectKey in subjectKeys) {
+        final byCategory = bySubject[subjectKey]!;
+        for (final kind in _ExamCategory.values) {
+          final questions = byCategory[kind];
+          if (questions == null || questions.isEmpty) continue;
+          categories.add(
+            QuestionCategory(
+              id: 'category_$categoryIndex',
+              name: kind.label,
+              subject: subjectLookup[subjectKey],
+              questionCount: questions.length,
+              questions: questions,
+            ),
+          );
+          categoryIndex++;
+        }
       }
 
       try {
