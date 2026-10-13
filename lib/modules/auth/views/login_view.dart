@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/resources/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_keyboard.dart';
 import '../../../core/widgets/app_text.dart';
 import '../controllers/login_controller.dart';
 
@@ -66,35 +67,44 @@ class LoginView extends GetView<LoginController> {
                 ),
                 const SizedBox(height: 12),
                 const SizedBox(height: 56),
-                // Username Field
-                TextFormField(
-                  controller: controller.usernameController,
-                  style: const TextStyle(fontSize: 18),
-                  decoration: InputDecoration(
-                    labelText: "Enrolment number",
-                    hintText: "Enter enrolment number",
-                    prefixIcon: const Icon(Icons.person, size: 28),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 20,
+                // Enrolment number — entered on the in-app keyboard below.
+                // No TextField, so the OS keyboard never opens (it covers
+                // the whole screen on the tablets in landscape).
+                const Padding(
+                  padding: EdgeInsets.only(left: 4, bottom: 8),
+                  child: Text(
+                    'Enrolment number',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  validator: (value) {
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
                 ),
-                const SizedBox(height: 24),
-                Obx(
+                KeyboardInputBox(
+                  controller: controller.usernameController,
+                  hint: 'Enter enrolment number',
+                  icon: Icons.person,
+                  fontSize: 20,
+                ),
+                const SizedBox(height: 16),
+                AppKeyboard(
+                  layout: AppKeyboardLayout.digits,
+                  keyWidth: 72,
+                  keyHeight: 52,
+                  onKey: (k) =>
+                      applyKeyboardKey(controller.usernameController, k),
+                ),
+                const SizedBox(height: 16),
+                // Login stays disabled until an enrolment number is typed.
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: controller.usernameController,
+                  builder: (context, value, _) => Obx(
                   () => SizedBox(
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: controller.isLoading.value
+                      onPressed: controller.isLoading.value ||
+                              value.text.trim().isEmpty
                           ? null
                           : () => controller.gotoLogin(context),
                       style: ElevatedButton.styleFrom(
@@ -124,6 +134,7 @@ class LoginView extends GetView<LoginController> {
                               color: Colors.white,
                             ),
                     ),
+                  ),
                   ),
                 ),
               ],

@@ -8,6 +8,7 @@ import 'package:suguna_exam_app/modules/test_analysis/views/test_analysis_view.d
 import 'package:suguna_exam_app/modules/test_player/controllers/test_player_parser.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/assigment_api_services.dart';
+import '../../../core/widgets/app_keyboard.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../data/models/bookmarks.dart';
 import '../../../data/models/subject_model.dart';
@@ -465,13 +466,24 @@ class TestPlayerController extends GetxController {
     updateView();
   }
 
-  void setNumericalAnswer(double value) {
+  /// `null` clears the answer (field emptied by the student).
+  void setNumericalAnswer(double? value) {
     if (isTimerCompleted) return;
     currentQuestion.numericalAnswer = value;
-    if (currentQuestion.status == QuestionStatus.notVisited) {
+    if (value != null && currentQuestion.status == QuestionStatus.notVisited) {
       currentQuestion.status = QuestionStatus.answered;
     }
     updateView();
+  }
+
+  /// Renders a numerical answer with at most 2 decimals and no trailing
+  /// zeros: 3.0 → "3", 2.50 → "2.5", 3.14159 → "3.14".
+  static String formatNumerical(double n) {
+    var text = n.toStringAsFixed(2);
+    if (text.contains('.')) {
+      text = text.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    }
+    return text == '-0' ? '0' : text;
   }
 
   final currentCategoryIndex = 0.obs;
@@ -832,11 +844,10 @@ class TestPlayerController extends GetxController {
       final n = question.numericalAnswer;
       if (n == null) {
         numericalController.text = '';
-      } else if (question.type == QuestionType.integer ||
-          n.truncateToDouble() == n) {
-        numericalController.text = n.toInt().toString();
+      } else if (question.type == QuestionType.integer) {
+        numericalController.text = n.round().toString();
       } else {
-        numericalController.text = n.toString();
+        numericalController.text = formatNumerical(n);
       }
     } else if (question.type == QuestionType.textType ||
                question.type == QuestionType.subjective) {
@@ -1294,41 +1305,93 @@ class TestPlayerController extends GetxController {
     if (isExamMode && !await _ensureOnlineForSubmit()) return;
     if (Get.isDialogOpen ?? false) return;
 
-    final TextEditingController confirmController = TextEditingController();
-    final RxBool isValid = false.obs;
+    // Typed via the in-dialog keyboard below — no TextField, so the OS
+    // keyboard (which covers the screen in landscape) never opens.
+    final RxString typed = ''.obs;
+    const target = 'SUBMIT';
+    // Make sure no keyboard from a text question is still showing.
+    FocusManager.instance.primaryFocus?.unfocus();
 
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Confirm Submission'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Type SUBMIT below to confirm test submission.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: confirmController,
-              onChanged: (value) {
-                isValid.value = value.trim().toUpperCase() == "SUBMIT";
-              },
-              decoration: InputDecoration(
-                hintText: 'Type SUBMIT',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+        content: SizedBox(
+          width: 560,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Type SUBMIT below to confirm test submission.',
+                style: TextStyle(fontSize: 14),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Obx(() {
+                final text = typed.value;
+                final ok = text == target;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: ok
+                          ? const Color(0xFF10B981)
+                          : (text.isEmpty
+                              ? const Color(0xFFD1D5DB)
+                              : const Color(0xFF4F46E5)),
+                      width: text.isEmpty ? 1 : 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    text.isEmpty ? 'Type SUBMIT' : text,
+                    style: TextStyle(
+                      fontSize: 18,
+                      letterSpacing: 2,
+                      fontWeight:
+                          text.isEmpty ? FontWeight.w400 : FontWeight.w700,
+                      color: text.isEmpty
+                          ? const Color(0xFF9CA3AF)
+                          : (ok
+                              ? const Color(0xFF059669)
+                              : const Color(0xFF111827)),
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+              AppKeyboard(
+                layout: AppKeyboardLayout.letters,
+                onKey: (key) {
+                  switch (key) {
+                    case '⌫':
+                      if (typed.value.isNotEmpty) {
+                        typed.value = typed.value
+                            .substring(0, typed.value.length - 1);
+                      }
+                      break;
+                    case 'CLEAR':
+                      typed.value = '';
+                      break;
+                    default:
+                      // Cap at the target length so stray taps are obvious.
+                      if (typed.value.length < target.length) {
+                        typed.value = typed.value + key;
+                      }
+                  }
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           Obx(
             () => ElevatedButton(
-              onPressed: isValid.value
+              onPressed: typed.value == target
                   ? () {
                       Get.back();
                       finalCompleteTest();
@@ -1685,13 +1748,17 @@ class TestPlayerController extends GetxController {
         return question.selectedAnswers?.join(';') ?? '';
 
       case QuestionType.integer:
+        // Integers go to the backend as a plain whole number ("5", "-3"),
+        // never "5.0".
         final n = question.numericalAnswer;
         if (n == null) return '';
-        return n.truncateToDouble() == n
-            ? n.toInt().toString()
-            : n.toString();
+        return n.round().toString();
       case QuestionType.numerical:
-        return question.numericalAnswer?.toString() ?? '';
+        // Numerical answers are capped at 2 decimal places ("3.14", "2.5",
+        // "7") — matching what the input field allows.
+        final n = question.numericalAnswer;
+        if (n == null) return '';
+        return formatNumerical(n);
 
       case QuestionType.textType:
       case QuestionType.subjective:

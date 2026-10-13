@@ -298,38 +298,72 @@ background-color:transparent;
         GetBuilder<TestPlayerController>(
           builder: (controller) {
             final isInteger = question.isInteger;
-            return TextField(
-              controller: controller.numericalController,
-              keyboardType: TextInputType.numberWithOptions(decimal: !isInteger),
-              inputFormatters: isInteger
-                  ? [FilteringTextInputFormatter.digitsOnly]
-                  : [_SingleDecimalFormatter()],
-              decoration: InputDecoration(
-                hintText: isInteger
-                    ? 'Enter integer answer'
-                    : 'Enter your answer',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // No TextField here at all — the system keyboard would cover the
+            // whole screen in landscape. The box only displays the value; all
+            // entry goes through the keypad on the right. Also dismiss any
+            // keyboard still open from a previous (text) question.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            });
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _AnswerDisplayBox(
+                    listenable: controller.numericalController,
+                    hint: isInteger
+                        ? 'Enter integer answer'
+                        : 'Enter your answer (up to 2 decimals)',
+                    fontSize: controller.getOptionFontSize() + 4,
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                contentPadding: const EdgeInsets.all(20),
-              ),
-              style: TextStyle(
-                fontSize: controller.getOptionFontSize(),
-                fontWeight: FontWeight.w600,
-              ),
-              onChanged: (value) {
-                final num = double.tryParse(value);
-                if (num != null) {
-                  controller.setNumericalAnswer(num);
-                }
-              },
+                const SizedBox(width: 16),
+                _NumericKeypad(
+                  isInteger: isInteger,
+                  onKey: (key) => _applyKeypadKey(controller, key, isInteger),
+                ),
+              ],
             );
           },
         ),
       ],
     );
+  }
+
+  /// Applies one keypad press to the answer field with the same validation
+  /// the typed input used: integer `-?\d*`, numerical `-?\d*(\.\d{0,2})?`.
+  void _applyKeypadKey(
+      TestPlayerController controller, String key, bool isInteger) {
+    final current = controller.numericalController.text;
+    String next;
+    switch (key) {
+      case '⌫':
+        next = current.isEmpty
+            ? current
+            : current.substring(0, current.length - 1);
+        break;
+      case 'C':
+        next = '';
+        break;
+      case '±':
+        next = current.startsWith('-')
+            ? current.substring(1)
+            : '-$current';
+        break;
+      default:
+        next = current + key;
+    }
+    final allowed = isInteger
+        ? RegExp(r'^-?\d*$')
+        : RegExp(r'^-?\d*(\.\d{0,2})?$');
+    if (!allowed.hasMatch(next)) return;
+
+    controller.numericalController.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+    // Empty / "-" / "." → no answer; otherwise store the number.
+    controller.setNumericalAnswer(double.tryParse(next));
   }
 
   // True/False
@@ -847,12 +881,149 @@ class _CachedTeXState extends State<_CachedTeX> {
   Widget build(BuildContext context) => _cached;
 }
 
-class _SingleDecimalFormatter extends TextInputFormatter {
+/// Read-only value box for keypad-driven answers. Deliberately not a
+/// TextField: it cannot take focus, so the OS keyboard can never appear.
+class _AnswerDisplayBox extends StatelessWidget {
+  final TextEditingController listenable;
+  final String hint;
+  final double fontSize;
+  const _AnswerDisplayBox({
+    required this.listenable,
+    required this.hint,
+    required this.fontSize,
+  });
+
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text;
-    if ('.'.allMatches(text).length > 1) return oldValue;
-    return newValue;
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: listenable,
+      builder: (context, value, _) {
+        final text = value.text;
+        return Container(
+          constraints: const BoxConstraints(minHeight: 64),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: text.isEmpty ? Colors.grey.shade400 : AppColors.primary,
+              width: text.isEmpty ? 1 : 1.5,
+            ),
+          ),
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  text.isEmpty ? hint : text,
+                  style: TextStyle(
+                    fontSize: text.isEmpty ? fontSize - 4 : fontSize,
+                    fontWeight: text.isEmpty ? FontWeight.w400 : FontWeight.w700,
+                    letterSpacing: text.isEmpty ? 0 : 1,
+                    color: text.isEmpty
+                        ? Colors.grey.shade500
+                        : AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Icon(Icons.dialpad_rounded, size: 20, color: Colors.grey.shade400),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// On-screen keypad for integer / numerical answers. Sits beside the answer
+/// field so the OS keyboard (which hides the question in landscape) is
+/// never needed. The decimal point key is omitted for integer questions.
+class _NumericKeypad extends StatelessWidget {
+  final bool isInteger;
+  final ValueChanged<String> onKey;
+  const _NumericKeypad({required this.isInteger, required this.onKey});
+
+  static const double _keyW = 58;
+  static const double _keyH = 48;
+  static const double _gap = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <List<String>>[
+      ['7', '8', '9', '⌫'],
+      ['4', '5', '6', 'C'],
+      ['1', '2', '3', '±'],
+      ['0', if (!isInteger) '.'],
+    ];
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final row in rows)
+            Padding(
+              padding: EdgeInsets.only(bottom: row == rows.last ? 0 : _gap),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < row.length; i++) ...[
+                    if (i > 0) const SizedBox(width: _gap),
+                    _key(row[i]),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _key(String label) {
+    final isAction = label == '⌫' || label == 'C' || label == '±';
+    final Color bg;
+    final Color fg;
+    if (label == 'C') {
+      bg = const Color(0xFFFEE2E2);
+      fg = const Color(0xFFDC2626);
+    } else if (isAction) {
+      bg = const Color(0xFFE0E7FF);
+      fg = AppColors.primary;
+    } else {
+      bg = Colors.white;
+      fg = AppColors.textPrimary;
+    }
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: () => onKey(label),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: _keyW,
+          height: _keyH,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: label == '⌫'
+              ? Icon(Icons.backspace_outlined, size: 20, color: fg)
+              : Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: fg,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 }
 

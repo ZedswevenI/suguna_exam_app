@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/widgets/app_keyboard.dart';
 import '../../../data/models/exam_model.dart';
 import '../controllers/discussion_list_controller.dart';
 
@@ -618,17 +619,34 @@ class _Sidebar extends StatelessWidget {
             _sectionLabel('DOWNLOAD TEST'),
             const SizedBox(height: 14),
 
-            _InputField(
+            // Both fields use the in-app keyboard (dialog) — the OS keyboard
+            // would cover the whole screen in landscape.
+            KeyboardInputBox(
               controller: testIdCtrl,
               hint: 'Enter Test ID',
               icon: Icons.tag_rounded,
+              fontSize: 13,
+              onTap: () => showKeyboardInputDialog(
+                title: 'Enter Test ID',
+                controller: testIdCtrl,
+                hint: 'Enter Test ID',
+                icon: Icons.tag_rounded,
+              ),
             ),
             const SizedBox(height: 10),
-            _InputField(
+            KeyboardInputBox(
               controller: passcodeCtrl,
               hint: 'Enter Passcode',
               icon: Icons.lock_outline_rounded,
               obscure: true,
+              fontSize: 13,
+              onTap: () => showKeyboardInputDialog(
+                title: 'Enter Passcode',
+                controller: passcodeCtrl,
+                hint: 'Enter Passcode',
+                icon: Icons.lock_outline_rounded,
+                obscure: true,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -680,51 +698,6 @@ class _Sidebar extends StatelessWidget {
         fontSize: 10,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.4,
-      ),
-    );
-  }
-}
-
-// ── Input field ───────────────────────────────────────────────────────────────
-
-class _InputField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final IconData icon;
-  final bool obscure;
-
-  const _InputField({
-    required this.controller,
-    required this.hint,
-    required this.icon,
-    this.obscure = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFADB5C7), fontSize: 13),
-        prefixIcon: Icon(icon, color: const Color(0xFFADB5C7), size: 18),
-        filled: true,
-        fillColor: _C.bgPage,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _C.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _C.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _C.primary, width: 1.5),
-        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:suguna_exam_app/core/routes/app_routes.dart';
 import 'package:suguna_exam_app/core/services/assigment_api_services.dart';
 import 'package:suguna_exam_app/core/services/service_locator.dart';
+import 'package:suguna_exam_app/core/widgets/app_keyboard.dart';
 import 'package:suguna_exam_app/data/models/exam_model.dart';
 import 'package:suguna_exam_app/data/services/network_service.dart';
 import 'package:suguna_exam_app/data/services/sessions.dart';
@@ -515,6 +516,25 @@ class DiscussionListController extends GetxController {
         question['solutionHtml'] =
             await _replaceImagesWithBase64(question['solutionHtml']);
       }
+
+      // Attachment images (`images[]` with url/label/order, no <img> in the
+      // HTML). Embed each as `dataUrl` so it renders offline; the renderer
+      // appends them under the question text.
+      if (question['images'] is List) {
+        for (var im in (question['images'] as List)) {
+          if (im is! Map) continue;
+          final url = (im['url'] ?? '').toString();
+          if (url.isEmpty) continue;
+          final existing = (im['dataUrl'] ?? '').toString();
+          if (existing.startsWith('data:')) continue;
+          final dataUrl = await _fetchImageAsDataUri(url);
+          if (dataUrl != null) {
+            im['dataUrl'] = dataUrl;
+          } else {
+            _failedImageUrls.add(url);
+          }
+        }
+      }
     }
 
     return questions;
@@ -615,29 +635,50 @@ class DiscussionListController extends GetxController {
 
   void _showPasswordDialog(ExamModel exam) {
     final passwordCtrl = TextEditingController();
+    final RxBool reveal = false.obs;
+    // Passcode is entered on the in-app keyboard below — no TextField, so
+    // the OS keyboard never opens.
+    FocusManager.instance.primaryFocus?.unfocus();
     Get.dialog(
       AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(exam.examName),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${exam.totalQuestions} Questions  •  ${exam.totalMarks} Marks  •  ${exam.duration} min',
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordCtrl,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Enter Passcode',
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+        content: SizedBox(
+          width: 560,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${exam.totalQuestions} Questions  •  ${exam.totalMarks} Marks  •  ${exam.duration} min',
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Obx(() => KeyboardInputBox(
+                          controller: passwordCtrl,
+                          hint: 'Enter Passcode',
+                          icon: Icons.lock_outline_rounded,
+                          obscure: !reveal.value,
+                          fontSize: 18,
+                        )),
+                  ),
+                  Obx(() => IconButton(
+                        tooltip: reveal.value ? 'Hide' : 'Show',
+                        onPressed: () => reveal.value = !reveal.value,
+                        icon: Icon(reveal.value
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                      )),
+                ],
+              ),
+              const SizedBox(height: 12),
+              AppKeyboard(
+                onKey: (k) => applyKeyboardKey(passwordCtrl, k),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
