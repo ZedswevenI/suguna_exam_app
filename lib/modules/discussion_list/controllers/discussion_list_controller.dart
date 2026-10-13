@@ -70,9 +70,19 @@ class DiscussionListController extends GetxController {
     }
   }
 
+  /// True when the list on screen came from the local cache because the
+  /// server couldn't be reached.
+  final isShowingCachedList = false.obs;
+
+  String get _examListCacheKey {
+    final userData = Session.instance.currentUser?['data'];
+    return 'exam_list_cache_${userData?['admissionNo'] ?? 'unknown'}';
+  }
+
   Future<void> fetchExams() async {
     isLoading.value = true;
     errorMessage.value = '';
+    isShowingCachedList.value = false;
     try {
       final userData = Session.instance.currentUser?['data'];
       if (userData == null) {
@@ -89,13 +99,45 @@ class DiscussionListController extends GetxController {
       if (response['status'] == true) {
         final List<dynamic> data = response['data'] ?? [];
         exams.value = data.map((e) => ExamModel.fromJson(e)).toList();
+        // Keep the last good list so the student can still open an
+        // already-downloaded exam when the app is (re)started offline.
+        _storage.save(_examListCacheKey, data);
       } else {
-        errorMessage.value = response['message'] ?? 'Failed to load exams';
+        if (!_loadExamsFromCache()) {
+          errorMessage.value = response['message'] ?? 'Failed to load exams';
+        }
       }
     } catch (e) {
-      errorMessage.value = 'Failed to load exams: $e';
+      if (!_loadExamsFromCache()) {
+        errorMessage.value = 'Failed to load exams: $e';
+      }
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Populates [exams] from the last successful fetch. Returns false if
+  /// there is nothing cached.
+  bool _loadExamsFromCache() {
+    final cached = _storage.read(_examListCacheKey);
+    if (cached is! List || cached.isEmpty) return false;
+    try {
+      exams.value = cached
+          .map((e) => ExamModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+      isShowingCachedList.value = true;
+      Get.snackbar(
+        'Offline',
+        'Showing your last synced exam list. Downloaded exams can still be taken.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFD97706),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+      return true;
+    } catch (e) {
+      print('exam list cache parse failed: $e');
+      return false;
     }
   }
 
@@ -202,11 +244,30 @@ class DiscussionListController extends GetxController {
       }
 
       // Download and convert images to base64
+      _failedImageUrls.clear();
       final processedQuestions = await _processExamQuestionImages(allQuestions);
 
       // Process images inside instructions HTML too (so they're available
       // offline in the instructions screen).
       final instructions = await _processInstructionImages(data['instructions']);
+
+      // Never cache a paper with images that didn't embed — it would look
+      // fine online and break once the tablet goes offline. Make the
+      // student retry on a working connection instead.
+      if (_failedImageUrls.isNotEmpty) {
+        final n = _failedImageUrls.length;
+        print('Exam download incomplete — $n image(s) failed: $_failedImageUrls');
+        Get.snackbar(
+          'Download Incomplete',
+          '$n image${n == 1 ? '' : 's'} could not be downloaded. '
+          'Please check your connection and try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFDC2626),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
+        return;
+      }
 
       // Build stored exam data (same structure as assignment storage)
       final examData = {
@@ -291,14 +352,33 @@ class DiscussionListController extends GetxController {
   }
 
   // ── Image processing helpers ──────────────────────────────────────────────
+
+  /// Image URLs that could not be embedded during the current download.
+  /// The exam is only cached when this stays empty, so anything stored is
+  /// guaranteed to render offline.
+  final List<String> _failedImageUrls = [];
+
   List<String> _extractImageUrls(String html) {
-    final regex = RegExp(r'''<img[^>]+src\s*=\s*["']([^"'>]+)["']''');
+    // Quoted or unquoted src; skips already-embedded data URIs.
+    final regex = RegExp(
+      r'''<img[^>]+src\s*=\s*(?:["']([^"']+)["']|([^\s>]+))''',
+      caseSensitive: false,
+    );
     return regex
         .allMatches(html)
-        .map((m) => m.group(1)!)
-        .where((u) => !u.startsWith('data:'))
+        .map((m) => (m.group(1) ?? m.group(2) ?? '').trim())
+        .where((u) => u.isNotEmpty && !u.startsWith('data:'))
+        .toSet()
         .toList();
   }
+
+  /// `src` values are HTML-escaped (`&amp;` etc.) — decode before fetching.
+  String _decodeHtmlEntities(String url) => url
+      .replaceAll('&amp;', '&')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>');
 
   String _mimeFromUrl(String url) {
     final ext = url.split('?').first.split('#').first.split('.').last.toLowerCase();
@@ -321,16 +401,37 @@ class DiscussionListController extends GetxController {
   Future<String> _replaceImagesWithBase64(String html) async {
     final urls = _extractImageUrls(html);
 
-    for (final url in urls) {
+    for (final rawUrl in urls) {
+      final url = _decodeHtmlEntities(rawUrl);
+      final base64Tag = await _fetchImageAsDataUri(url);
+      if (base64Tag == null) {
+        _failedImageUrls.add(url);
+        continue;
+      }
+      // Replace the exact text that appeared in the HTML (may be entity-
+      // encoded), and the decoded form in case it appears elsewhere.
+      html = html.replaceAll(rawUrl, base64Tag);
+      if (rawUrl != url) html = html.replaceAll(url, base64Tag);
+    }
+    return html;
+  }
+
+  /// Downloads one image (signed URL first, then the original URL) and
+  /// returns it as a `data:` URI. Retries once on failure. Null on failure.
+  Future<String?> _fetchImageAsDataUri(String url) async {
+    for (var attempt = 1; attempt <= 2; attempt++) {
       try {
         // 1. Try to get a signed URL from the backend
         String? signedUrl;
         try {
-          final signedResponse = await _apiService.downloadExamQuestionImage(url);
+          final signedResponse =
+              await _apiService.downloadExamQuestionImage(url);
           final ok = signedResponse['status'] == true ||
               signedResponse['status']?.toString() == 'true' ||
               signedResponse['success'] == true;
-          final returnedUrl = (signedResponse['url'] ?? signedResponse['data']?['url'])?.toString();
+          final returnedUrl =
+              (signedResponse['url'] ?? signedResponse['data']?['url'])
+                  ?.toString();
           if (ok && returnedUrl != null && returnedUrl.isNotEmpty) {
             signedUrl = returnedUrl;
           }
@@ -342,18 +443,15 @@ class DiscussionListController extends GetxController {
         final fetchUrl = signedUrl ?? url;
         final bytes = await _apiService.downloadImageBytes(fetchUrl);
         if (bytes.isEmpty) {
-          print('Exam image empty bytes for $fetchUrl');
+          print('Exam image empty bytes for $fetchUrl (attempt $attempt)');
           continue;
         }
-        final base64Str = base64Encode(bytes);
-        final base64Tag = 'data:${_mimeFromUrl(url)};base64,$base64Str';
-
-        html = html.replaceAll(url, base64Tag);
+        return 'data:${_mimeFromUrl(url)};base64,${base64Encode(bytes)}';
       } catch (e) {
-        print("Exam image convert failed for $url: $e");
+        print('Exam image convert failed for $url (attempt $attempt): $e');
       }
     }
-    return html;
+    return null;
   }
 
   /// Downloads images in the instructions HTML so they render offline.
@@ -438,17 +536,17 @@ class DiscussionListController extends GetxController {
 
 
     // If result is visible, go to analysis
-    if (exam.isResultVisible) {
-      Get.toNamed(AppRoutes.examResult, arguments: {
-        'examId': exam.examId,
-        'examName': exam.examName,
-        'examCode': exam.examCode,
-        'totalMarks': exam.totalMarks,
-        'totalQuestions': exam.totalQuestions,
-        'duration': exam.duration,
-      });
-      return;
-    }
+    // if (exam.isResultVisible) {
+    //   Get.toNamed(AppRoutes.examResult, arguments: {
+    //     'examId': exam.examId,
+    //     'examName': exam.examName,
+    //     'examCode': exam.examCode,
+    //     'totalMarks': exam.totalMarks,
+    //     'totalQuestions': exam.totalQuestions,
+    //     'duration': exam.duration,
+    //   });
+    //   return;
+    // }
 
 
     // If already attempted but result not yet published — show analysis screen.
@@ -463,6 +561,7 @@ class DiscussionListController extends GetxController {
       });
       return;
     }
+
 
     // Check if already cached
     final storageKey = 'exam_${exam.examId}';

@@ -3,9 +3,13 @@ package com.example.suguna_exam_app
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -16,12 +20,10 @@ class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
     private var isLockEnabled = false
 
-    // Screen pinning / lock-task is disabled: with it on, Android swallows the
-    // Home press entirely (just shows the "pinned" toast) so the app never
-    // gets a chance to show the submit confirmation. With it off, Home
-    // reaches onUserLeaveHint() and Flutter treats it like Back.
-    // Flip to true to restore pinning.
-    private val ENABLE_LOCK_TASK = false
+    // Lock task mode — only works (fully blocks Home) if MDM has removed
+    // LOCK_TASK_FEATURE_HOME from setLockTaskFeatures(). Keep true so the
+    // exam task is at least pinned in the stack even if Home still navigates.
+    private val ENABLE_LOCK_TASK = true
 
     // When Home is pressed mid-exam, immediately bring this task back to the
     // front so the student stays on the exam (with the submit confirmation
@@ -59,6 +61,8 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "startLock" -> {
                         isLockEnabled = true
+                        // Hide navigation bar — home button disappears visually
+                        hideSystemUI()
                         // Block screenshots
                         try {
                             window.setFlags(
@@ -82,6 +86,8 @@ class MainActivity : FlutterActivity() {
                     "stopLock" -> {
                         isLockEnabled = false
                         handler.removeCallbacks(lockMonitor)
+                        // Restore navigation bar
+                        showSystemUI()
                         // Remove screenshot block
                         try {
                             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -99,31 +105,29 @@ class MainActivity : FlutterActivity() {
                         } catch (_: Exception) {}
                         result.success(true)
                     }
+                    "exitApp" -> {
+                        // Force-close even while pinned: finish() is ignored
+                        // for a lock-task root activity, so leave lock-task
+                        // first (verified, with retries), remove the task,
+                        // then kill the process.
+                        isLockEnabled = false
+                        handler.removeCallbacks(lockMonitor)
+                        showSystemUI()
+                        result.success(true)
+                        forceExit(0)
+                    }
                     else -> result.notImplemented()
                 }
             }
     }
 
-    // Fired by Android when the user presses Home / Recents (not for incoming
-    // calls, screen off, etc.). While the exam lock is on, tell Flutter so it
-    // can treat it exactly like a Back press (submit confirmation).
+    // onUserLeaveHint fires before onPause — good for early detection of
+    // Home/Recents press. onWindowFocusChanged handles the bring-back after
+    // a short delay, so we only notify Flutter here.
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (isLockEnabled) {
             try { channel?.invokeMethod("homePressed", null) } catch (_: Exception) {}
-            if (BRING_BACK_ON_HOME) {
-                try {
-                    // singleTop launchMode → this lands in onNewIntent on the
-                    // existing instance; the Flutter engine is untouched.
-                    val intent = Intent(this, MainActivity::class.java).apply {
-                        addFlags(
-                            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        )
-                    }
-                    startActivity(intent)
-                } catch (_: Exception) {}
-            }
         }
     }
 
@@ -148,9 +152,97 @@ class MainActivity : FlutterActivity() {
         super.onPause()
     }
 
+    // Re-hide nav bar whenever a system overlay (nav bar swipe, notification)
+    // temporarily reveals it, so the home button disappears again immediately.
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (isLockEnabled) {
+            if (hasFocus) {
+                hideSystemUI()
+            } else {
+                // Focus loss on its own is NOT a Home press: the screen-pinning
+                // confirmation shown by startLockTask() at exam start, the
+                // notification shade, permission/system dialogs all take focus
+                // while the activity stays resumed. Only treat it as "left the
+                // app" if the activity has actually been paused by the time
+                // the delay elapses (Home / Recents / task switch).
+                handler.postDelayed({
+                    if (isLockEnabled && !isForeground) {
+                        try {
+                            channel?.invokeMethod("homePressed", null)
+                        } catch (_: Exception) {}
+                        if (BRING_BACK_ON_HOME) {
+                            try {
+                                val intent = Intent(this, MainActivity::class.java).apply {
+                                    addFlags(
+                                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    )
+                                }
+                                startActivity(intent)
+                            } catch (_: Exception) {}
+                        }
+                    }
+                }, 300)
+            }
+        }
+    }
+
+    /// Unpins (retrying until the system reports LOCK_TASK_MODE_NONE or we
+    /// give up), then finishes the task and kills the process.
+    private fun forceExit(attempt: Int) {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val locked = am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+        if (locked && attempt < 10) {
+            try {
+                stopLockTask()
+            } catch (e: Exception) {
+                android.util.Log.e("exam_lock", "stopLockTask failed (attempt $attempt)", e)
+            }
+            handler.postDelayed({ forceExit(attempt + 1) }, 150)
+            return
+        }
+        if (locked) {
+            android.util.Log.e("exam_lock", "Still in lock task after retries — exiting anyway")
+        }
+        try { finishAndRemoveTask() } catch (_: Exception) {}
+        handler.postDelayed({
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }, 200)
+    }
+
     override fun onDestroy() {
         isLockEnabled = false
         handler.removeCallbacks(lockMonitor)
         super.onDestroy()
+    }
+
+    private fun hideSystemUI() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.let {
+                it.hide(WindowInsets.Type.systemBars())
+                it.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            )
+        }
+    }
+
+    private fun showSystemUI() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.show(WindowInsets.Type.systemBars())
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        }
     }
 }

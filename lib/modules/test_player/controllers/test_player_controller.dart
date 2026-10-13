@@ -95,11 +95,31 @@ class TestPlayerController extends GetxController {
     });
   }
 
+  /// When the exam lock was engaged. Native can report spurious "left the
+  /// app" signals while lock-task / screen pinning is being set up right
+  /// after start, so prompts within this grace period are ignored.
+  DateTime? _lockStartedAt;
+  static const _startupGrace = Duration(seconds: 4);
+
+  /// Set while a deferred prompt is waiting to open, so the same event
+  /// arriving twice (onUserLeaveHint + focus loss, or Home + resume) can't
+  /// stack two dialogs.
+  bool _submitPromptPending = false;
+
   /// Opens the "type SUBMIT" confirmation if it isn't already showing and
   /// the exam is still in progress. Shared by Back, Home and app-resume.
   /// Slightly deferred so it never runs inside a platform/lifecycle callback.
   void openSubmitConfirmation() {
+    if (_submitPromptPending) return;
+    final startedAt = _lockStartedAt;
+    if (startedAt != null &&
+        DateTime.now().difference(startedAt) < _startupGrace) {
+      print('exam_lock: ignoring submit prompt during start-up grace');
+      return;
+    }
+    _submitPromptPending = true;
     Future<void>.delayed(const Duration(milliseconds: 300), () {
+      _submitPromptPending = false;
       if (isClosed) return;
       if (Get.isDialogOpen ?? false) return;
       if (isTestCompleted.value || isSubmitting.value) return;
@@ -160,6 +180,7 @@ class TestPlayerController extends GetxController {
 
   Future<void> lockScreen() async {
     _unlocked = false;
+    _lockStartedAt = DateTime.now();
     try {
       await _lockChannel.invokeMethod('startLock');
     } catch (e) {
@@ -174,10 +195,18 @@ class TestPlayerController extends GetxController {
     if (_unlocked) return;
     _unlocked = true;
     try {
-      // await _lockChannel.invokeMethod('stopLock');
+      await _lockChannel.invokeMethod('stopLock');
     } catch (e) {
       print('Unlock error: $e');
     }
+  }
+
+  /// Unlocks once the player route has been torn down. Must NOT run during
+  /// the route transition itself (crashes under MDM lock-task), and must not
+  /// `await` Get.offAllNamed — that future only completes when the *new*
+  /// route is popped, so anything after it would never run.
+  void _unlockAfterNavigation() {
+    Future<void>.delayed(const Duration(milliseconds: 600), unlockScreen);
   }
 
 
@@ -920,7 +949,6 @@ class TestPlayerController extends GetxController {
   void _onTimeUp() {
     _recordTimeForCurrentQuestion();
     _questionStartTime = null;
-    unlockScreen();
     Get.snackbar(
       'Time Up',
       'Your test time has ended',
@@ -1235,7 +1263,37 @@ class TestPlayerController extends GetxController {
     return isQuestionCorrect(question);
   }
 
-  void completeTest() {
+  /// Text shown on the blocking overlay while [isSubmitting] is true.
+  final submitStatus = 'Submitting your exam…'.obs;
+
+  /// Shows "No internet" and returns false if the API host can't be reached.
+  /// The probe can take a few seconds, so the overlay is shown meanwhile.
+  Future<bool> _ensureOnlineForSubmit() async {
+    final wasSubmitting = isSubmitting.value;
+    submitStatus.value = 'Checking connection…';
+    isSubmitting.value = true;
+    final online = await NetworkService.canReachServer();
+    submitStatus.value = 'Submitting your exam…';
+    isSubmitting.value = wasSubmitting;
+    if (!online) {
+      Get.snackbar(
+        'No Internet Connection',
+        'Connect to Wi-Fi or mobile data, then submit again. '
+        'Your answers are safe — the exam is still running.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFDC2626),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    }
+    return online;
+  }
+
+  void completeTest() async {
+    if (isSubmitting.value) return;
+    if (isExamMode && !await _ensureOnlineForSubmit()) return;
+    if (Get.isDialogOpen ?? false) return;
+
     final TextEditingController confirmController = TextEditingController();
     final RxBool isValid = false.obs;
 
@@ -1306,102 +1364,12 @@ class TestPlayerController extends GetxController {
 
   /// Complete test and show results
   void finalCompleteTest() async {
-
-    await clearData();
-
     if (isExamMode) {
-      isSubmitting.value = true;
-      final examPayload = _prepareExamSubmission();
-      // 1. Persist the prepared submission payload to local storage FIRST,
-      //    flagged pendingSync. If the app is killed or the network call
-      //    fails mid-submit, the next launch can detect and retry this.
-      storage.save(Session.instance.currentTestId, {
-        "testJson": selectedQuestions,
-        "examPayload": examPayload,
-        "completed": true,
-        "pendingSync": true,
-        "timestamp": DateTime.now().toIso8601String(),
-      });
-      try {
-        final connectivityResult = await NetworkService.hasInternet();
-        if (connectivityResult) {
-          final response = await _apiService.submitExamResult(examPayload);
-          if (response is! Exception && response['status'] == true) {
-            // Submission confirmed by server — drop the pendingSync flag.
-            storage.save(Session.instance.currentTestId, {
-              "testJson": selectedQuestions,
-              "completed": true,
-              "pendingSync": false,
-              "timestamp": DateTime.now().toIso8601String(),
-            });
-            storage.removeByKey('active_exam_id');
-            isSubmitting.value = false;
-            final analysisArgs = <String, dynamic>{
-              'examId':
-                  Session.instance.currentTestId.replaceAll('exam_', ''),
-              'examCode': examCode,
-              'examName':
-                  (selectedQuestions['examName'] ?? '').toString(),
-            };
-            // Yield a frame so the submitting overlay disappears before the
-            // route is torn down — avoids overlay/route teardown race under MDM.
-            await Future<void>.delayed(const Duration(milliseconds: 100));
-            await Get.offAllNamed(
-              AppRoutes.examAnalysis,
-              arguments: analysisArgs,
-            );
-            Get.snackbar(
-              'Success',
-              'Your exam has been submitted successfully, Your result will be published soon...',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFF10B981),
-              colorText: Colors.white,
-              duration: const Duration(seconds: 3),
-            );
-            return;
-          } else {
-            isSubmitting.value = false;
-            final msg = response is Exception
-                ? response.toString()
-                : (response['message'] ?? 'Submission failed');
-            Get.snackbar('Error', msg,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFFEF4444),
-              colorText: Colors.white,
-            );
-          }
-        } else {
-          // Offline — the payload is already persisted with pendingSync=true.
-          isSubmitting.value = false;
-          await Future<void>.delayed(const Duration(milliseconds: 100));
-          await Get.offAllNamed(AppRoutes.discussion);
-          Get.snackbar(
-            'Offline',
-            'Exam saved locally. It will be submitted when you are online.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFD97706),
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        }
-      } catch (e) {
-        // Network/serialization error — payload remains in storage with
-        // pendingSync=true so it will be retried automatically on next launch.
-        isSubmitting.value = false;
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-        await Get.offAllNamed(AppRoutes.discussion);
-        Get.snackbar(
-          'Submission Pending',
-          "We couldn't reach the server. Your answers are saved locally and "
-          'will be submitted automatically the next time you connect.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFD97706),
-          colorText: Colors.white,
-          duration: const Duration(seconds: 4),
-        );
-      }
+      await _submitExam();
       return;
     }
+
+    await clearData();
 
     // Assignment flow (existing)
     final Map<String, dynamic> results = _prepareResultsForSubmission();
@@ -1421,6 +1389,92 @@ class TestPlayerController extends GetxController {
       duration: const Duration(seconds: 3),
     );
     Get.offAllNamed(AppRoutes.discussion);
+  }
+
+  /// Exam submission. The connection is verified first; the timer keeps
+  /// running and the student stays on the exam screen unless the server
+  /// confirms the submission, so a dropped connection never strands them on
+  /// the list screen with an unsubmitted paper.
+  Future<void> _submitExam() async {
+    if (isSubmitting.value) return;
+    // Re-check: the connection may have dropped while typing SUBMIT.
+    if (!await _ensureOnlineForSubmit()) return;
+
+    isSubmitting.value = true;
+    _recordTimeForCurrentQuestion();
+    final examPayload = _prepareExamSubmission();
+
+    // Persist the payload FIRST, flagged pendingSync, so that if the app is
+    // killed mid-request the next launch can retry it.
+    storage.save(Session.instance.currentTestId, {
+      "testJson": selectedQuestions,
+      "examPayload": examPayload,
+      "completed": true,
+      "pendingSync": true,
+      "timestamp": DateTime.now().toIso8601String(),
+    });
+
+    try {
+      final response = await _apiService.submitExamResult(examPayload);
+      final ok = response is! Exception && response['status'] == true;
+      if (!ok) {
+        final msg = response is Exception
+            ? response.toString()
+            : (response['message'] ?? 'Submission failed').toString();
+        _submitFailed(msg);
+        return;
+      }
+
+      // Confirmed by the server.
+      await clearData();
+      storage.save(Session.instance.currentTestId, {
+        "testJson": selectedQuestions,
+        "completed": true,
+        "pendingSync": false,
+        "timestamp": DateTime.now().toIso8601String(),
+      });
+      storage.removeByKey('active_exam_id');
+      isSubmitting.value = false;
+
+      final analysisArgs = <String, dynamic>{
+        'examId': Session.instance.currentTestId.replaceAll('exam_', ''),
+        'examCode': examCode,
+        'examName': (selectedQuestions['examName'] ?? '').toString(),
+      };
+      // Yield a frame so the submitting overlay disappears before the route
+      // is torn down (overlay/route teardown race under MDM).
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      // Not awaited: Get.offAllNamed's future completes only when the NEW
+      // route is popped, which would delay everything below indefinitely.
+      Get.offAllNamed(AppRoutes.examAnalysis, arguments: analysisArgs);
+      _unlockAfterNavigation();
+      Get.snackbar(
+        'Success',
+        'Your exam has been submitted successfully, Your result will be published soon...',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF10B981),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e) {
+      _submitFailed("We couldn't reach the server. Please check your "
+          'connection and tap Submit Test again.');
+    }
+  }
+
+  /// Submission didn't reach / wasn't accepted by the server: drop the
+  /// overlay and keep the student in the exam so they can retry. The
+  /// pendingSync payload stays in storage as a safety net for app restarts.
+  void _submitFailed(String message) {
+    isSubmitting.value = false;
+    Get.snackbar(
+      'Submission Failed',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFFEF4444),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 5),
+    );
   }
 
   /// Submit test results to server

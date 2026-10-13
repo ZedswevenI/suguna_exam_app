@@ -1,7 +1,7 @@
 class AppConstants {
   // Displayed as "vX.Y.Z" in the app UI. Bump this alongside the version in
   // pubspec.yaml when releasing.
-  static const String appVersion = '1.0.2';
+  static const String appVersion = '1.0.4';
 
   // API Configuration (for future use)
   static const String baseUrl = 'https://portalapi.z7i.in/api/crm';

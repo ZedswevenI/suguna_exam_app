@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -225,6 +226,63 @@ class _DownloadTestState extends State<DownloadTest>
 
 // ── Header ────────────────────────────────────────────────────────────────────
 
+/// Closes the app even if it is pinned / in lock-task mode: native unpins,
+/// removes the task and kills the process. Falls back to a normal exit on
+/// platforms without the channel.
+Future<void> _exitApp() async {
+  try {
+    await const MethodChannel('exam_lock').invokeMethod('exitApp');
+  } catch (e) {
+    // Reaching here on Android means the native side is out of date
+    // (hot reload doesn't rebuild Kotlin) — do a full rebuild.
+    // ignore: avoid_print
+    print('exam_lock.exitApp unavailable ($e); falling back to SystemNavigator.pop');
+    SystemNavigator.pop();
+  }
+}
+
+/// Confirms, then closes the app. If an exam is downloaded but not yet
+/// submitted the message says so — exiting doesn't lose anything (the paper
+/// stays cached and can be resumed), but the student should know.
+void _confirmExit(BuildContext context) {
+  final controller = Get.find<DiscussionListController>();
+  final hasActive = controller.hasActiveExam;
+  Get.dialog(
+    AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.power_settings_new_rounded, color: Color(0xFFDC2626)),
+          SizedBox(width: 12),
+          Text('Exit Exam App?'),
+        ],
+      ),
+      content: Text(
+        hasActive
+            ? 'You have an exam that is downloaded but not yet submitted. '
+              'It will stay on this device and you can continue it later.\n\n'
+              'Exit the app now?'
+            : 'Are you sure you want to close the app?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _exitApp,
+          icon: const Icon(Icons.exit_to_app_rounded, size: 18),
+          label: const Text('Exit'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFDC2626),
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _AppHeader extends StatelessWidget {
   final TabController tabController;
   final List<String> labels;
@@ -273,12 +331,18 @@ class _AppHeader extends StatelessWidget {
                   ),
                   const Spacer(),
                   IconButton(
+                    tooltip: 'Refresh',
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                     onPressed: () {
                       Get.find<DiscussionListController>().fetchExams();
                       Get.find<DiscussionListController>().syncPendingExamSubmissions();
                     },
                     // onPressed: () => ,
+                  ),
+                  IconButton(
+                    tooltip: 'Exit',
+                    icon: const Icon(Icons.power_settings_new_rounded, color: Colors.white),
+                    onPressed: () => _confirmExit(context),
                   ),
                 ],
               ),

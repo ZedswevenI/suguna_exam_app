@@ -14,10 +14,20 @@ import 'data/services/store_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await TeXRenderingServer.start();
-  } catch (e) {
-    debugPrint('TeXRenderingServer failed to start: $e');
+  // The LaTeX renderer is a local (127.0.0.1) server + one shared webview;
+  // every question in the player renders through it, so if it fails to
+  // start the whole exam appears blank. Retry a couple of times before
+  // giving up (e.g. a transient port bind failure right after boot).
+  for (var attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await TeXRenderingServer.start();
+      break;
+    } catch (e) {
+      debugPrint('TeXRenderingServer failed to start (attempt $attempt): $e');
+      if (attempt < 3) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+    }
   }
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,

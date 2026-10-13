@@ -130,7 +130,9 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
                     // be tapped twice. Kept inline (not Get.dialog) because
                     // dialogs can crash under MDM lock-task mode.
                     Obx(() => controller.isSubmitting.value
-                        ? const Positioned.fill(child: _SubmittingOverlay())
+                        ? Positioned.fill(
+                            child: _SubmittingOverlay(
+                                message: controller.submitStatus.value))
                         : const SizedBox.shrink()),
                   ],
                 ),
@@ -1827,7 +1829,8 @@ class _TestPlayerViewState extends State<TestPlayerView> with WidgetsBindingObse
 /// Absorbs all taps and blocks the back gesture so the student can't
 /// navigate or re-submit mid-request.
 class _SubmittingOverlay extends StatelessWidget {
-  const _SubmittingOverlay();
+  final String message;
+  const _SubmittingOverlay({required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -1862,9 +1865,9 @@ class _SubmittingOverlay extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Submitting your exam…',
-                    style: TextStyle(
+                  Text(
+                    message,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,

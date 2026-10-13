@@ -3,6 +3,9 @@ PODS:
     - FlutterMacOS
     - ReachabilitySwift
   - FlutterMacOS (1.0.0)
+  - managed_configurations (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -16,6 +19,7 @@ PODS:
 DEPENDENCIES:
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - managed_configurations (from `Flutter/ephemeral/.symlinks/plugins/managed_configurations/darwin`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - webview_flutter_wkwebview (from `Flutter/ephemeral/.symlinks/plugins/webview_flutter_wkwebview/darwin`)
@@ -29,6 +33,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  managed_configurations:
+    :path: Flutter/ephemeral/.symlinks/plugins/managed_configurations/darwin
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   url_launcher_macos:
@@ -39,6 +45,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   connectivity_plus: 18d3c32514c886e046de60e9c13895109866c747
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  managed_configurations: d2a34d35f10d1f7e7648f7c3ce7f801e67453fc2
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
   ReachabilitySwift: 32793e867593cfc1177f5d16491e3a197d2fccda
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
