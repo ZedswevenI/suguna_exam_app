@@ -556,17 +556,17 @@ class DiscussionListController extends GetxController {
 
 
     // If result is visible, go to analysis
-    // if (exam.isResultVisible) {
-    //   Get.toNamed(AppRoutes.examResult, arguments: {
-    //     'examId': exam.examId,
-    //     'examName': exam.examName,
-    //     'examCode': exam.examCode,
-    //     'totalMarks': exam.totalMarks,
-    //     'totalQuestions': exam.totalQuestions,
-    //     'duration': exam.duration,
-    //   });
-    //   return;
-    // }
+    if (exam.isResultVisible) {
+      Get.toNamed(AppRoutes.examResult, arguments: {
+        'examId': exam.examId,
+        'examName': exam.examName,
+        'examCode': exam.examCode,
+        'totalMarks': exam.totalMarks,
+        'totalQuestions': exam.totalQuestions,
+        'duration': exam.duration,
+      });
+      return;
+    }
 
 
     // If already attempted but result not yet published — show analysis screen.

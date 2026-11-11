@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../theme/app_colors.dart';
 
 /// Which keys an [AppKeyboard] shows.
 enum AppKeyboardLayout {
-  /// Digits row + QWERTY letters + a few symbols. For test IDs / passcodes.
+  /// Digits row + QWERTY letters + a few symbols. For IDs / passcodes / text.
   alphanumeric,
 
   /// QWERTY letters only (e.g. typing SUBMIT).
@@ -17,12 +16,16 @@ enum AppKeyboardLayout {
 
 /// In-app keyboard used wherever the OS keyboard must not appear (it covers
 /// the whole screen on the tablets in landscape). Emits one key per tap:
-/// a character, `'⌫'` for backspace or `'CLEAR'`.
+/// a character (including `' '` when [allowSpace]), `'⌫'` for backspace or
+/// `'CLEAR'`.
 class AppKeyboard extends StatefulWidget {
   final AppKeyboardLayout layout;
   final ValueChanged<String> onKey;
   final double keyWidth;
   final double keyHeight;
+
+  /// Adds a space bar (free-text fields such as a ticket description).
+  final bool allowSpace;
 
   const AppKeyboard({
     super.key,
@@ -30,6 +33,7 @@ class AppKeyboard extends StatefulWidget {
     this.layout = AppKeyboardLayout.alphanumeric,
     this.keyWidth = 44,
     this.keyHeight = 42,
+    this.allowSpace = false,
   });
 
   @override
@@ -45,7 +49,7 @@ class _AppKeyboardState extends State<AppKeyboard> {
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
     ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
   ];
-  static const _symbols = ['-', '_', '.', '@'];
+  static const _symbols = ['-', '_', '.', '@', ',', '/', '?', '!'];
 
   bool get _alnum => widget.layout == AppKeyboardLayout.alphanumeric;
 
@@ -60,6 +64,9 @@ class _AppKeyboardState extends State<AppKeyboard> {
         return;
       case 'CLR':
         widget.onKey('CLEAR');
+        return;
+      case 'SPACE':
+        widget.onKey(' ');
         return;
       default:
         final isLetter = label.length == 1 && RegExp(r'[A-Z]').hasMatch(label);
@@ -76,11 +83,12 @@ class _AppKeyboardState extends State<AppKeyboard> {
         ['7', '8', '9'],
         ['⌫', '0', 'CLR'],
       ] else ...[
-      if (_alnum) _digits,
-      _rows[0],
-      _rows[1],
-      [if (_alnum) '⇧', ..._rows[2], '⌫'],
-      if (_alnum) _symbols,
+        if (_alnum) _digits,
+        _rows[0],
+        _rows[1],
+        [if (_alnum) '⇧', ..._rows[2], '⌫'],
+        if (_alnum) [..._symbols, if (widget.allowSpace) 'SPACE'],
+        if (!_alnum && widget.allowSpace) ['SPACE'],
       ],
     ];
     return Column(
@@ -101,26 +109,30 @@ class _AppKeyboardState extends State<AppKeyboard> {
             ),
           ),
         if (widget.layout != AppKeyboardLayout.digits)
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () => _tap('CLEAR'),
-            icon: const Icon(Icons.clear_rounded, size: 16),
-            label: const Text('Clear'),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFDC2626),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => _tap('CLEAR'),
+              icon: const Icon(Icons.clear_rounded, size: 16),
+              label: const Text('Clear'),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFDC2626),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 
   Widget _key(String label) {
-    final isAction = label == '⌫' || label == '⇧' || label == 'CLR';
+    final isAction =
+        label == '⌫' || label == '⇧' || label == 'CLR' || label == 'SPACE';
     final isLetter = label.length == 1 && RegExp(r'[A-Z]').hasMatch(label);
     final display = isLetter && !_caps ? label.toLowerCase() : label;
     final highlighted = label == '⇧' && _caps;
+    final double width = label == 'SPACE'
+        ? widget.keyWidth * 3 + 10
+        : (isAction ? widget.keyWidth + 14 : widget.keyWidth);
     return Material(
       color: highlighted
           ? AppColors.primary
@@ -130,31 +142,31 @@ class _AppKeyboardState extends State<AppKeyboard> {
         onTap: () => _tap(label),
         borderRadius: BorderRadius.circular(6),
         child: Container(
-          width: isAction ? widget.keyWidth + 14 : widget.keyWidth,
+          width: width,
           height: widget.keyHeight,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: const Color(0xFFD1D5DB)),
           ),
-          child: label == '⌫'
-              ? const Icon(Icons.backspace_outlined,
-                  size: 18, color: Color(0xFF4F46E5))
-              : label == 'CLR'
-                  ? const Icon(Icons.clear_rounded,
-                      size: 20, color: Color(0xFFDC2626))
-              : label == '⇧'
-                  ? Icon(Icons.keyboard_capslock_rounded,
-                      size: 20,
-                      color: highlighted ? Colors.white : AppColors.primary)
-                  : Text(
-                      display,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
-                      ),
-                    ),
+          child: switch (label) {
+            '⌫' => const Icon(Icons.backspace_outlined,
+                size: 18, color: Color(0xFF4F46E5)),
+            'CLR' => const Icon(Icons.clear_rounded,
+                size: 20, color: Color(0xFFDC2626)),
+            '⇧' => Icon(Icons.keyboard_capslock_rounded,
+                size: 20, color: highlighted ? Colors.white : AppColors.primary),
+            'SPACE' => const Icon(Icons.space_bar_rounded,
+                size: 22, color: Color(0xFF4F46E5)),
+            _ => Text(
+                display,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                ),
+              ),
+          },
         ),
       ),
     );
@@ -198,6 +210,9 @@ class KeyboardInputBox extends StatelessWidget {
   final VoidCallback? onTap;
   final double fontSize;
 
+  /// >1 shows a taller, wrapping box for free-text fields.
+  final int maxLines;
+
   const KeyboardInputBox({
     super.key,
     required this.controller,
@@ -206,6 +221,7 @@ class KeyboardInputBox extends StatelessWidget {
     this.obscure = false,
     this.onTap,
     this.fontSize = 14,
+    this.maxLines = 1,
   });
 
   @override
@@ -215,11 +231,13 @@ class KeyboardInputBox extends StatelessWidget {
       builder: (context, value, _) {
         final text = value.text;
         final shown = obscure ? '•' * text.length : text;
+        final minHeight = maxLines > 1 ? (fontSize * 1.5 * maxLines) + 24 : 0.0;
         return InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(10),
           child: Container(
             width: double.infinity,
+            constraints: BoxConstraints(minHeight: minHeight),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFF8F9FC),
@@ -230,6 +248,9 @@ class KeyboardInputBox extends StatelessWidget {
               ),
             ),
             child: Row(
+              crossAxisAlignment: maxLines > 1
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.center,
               children: [
                 if (icon != null) ...[
                   Icon(icon, color: const Color(0xFFADB5C7), size: 18),
@@ -238,10 +259,12 @@ class KeyboardInputBox extends StatelessWidget {
                 Expanded(
                   child: Text(
                     text.isEmpty ? hint : shown,
+                    maxLines: maxLines,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: fontSize,
-                      letterSpacing: text.isEmpty ? 0 : (obscure ? 3 : 1),
+                      height: 1.5,
+                      letterSpacing: text.isEmpty ? 0 : (obscure ? 3 : 0.5),
                       fontWeight: text.isEmpty ? FontWeight.w400 : FontWeight.w600,
                       color: text.isEmpty
                           ? const Color(0xFFADB5C7)
@@ -263,77 +286,85 @@ class KeyboardInputBox extends StatelessWidget {
 
 /// Opens a dialog with a value box and an [AppKeyboard] that edits
 /// [controller]. Changes are applied live; Cancel restores the old value.
-Future<void> showKeyboardInputDialog({
+/// Uses Flutter's [showDialog] (not Get.dialog) so it works whether the app
+/// is routed by GetMaterialApp or go_router.
+Future<void> showKeyboardInputDialog(
+  BuildContext context, {
   required String title,
   required TextEditingController controller,
   String hint = '',
   bool obscure = false,
   int? maxLength,
   IconData? icon,
+  AppKeyboardLayout layout = AppKeyboardLayout.alphanumeric,
+  bool allowSpace = false,
+  int maxLines = 1,
 }) {
   final original = controller.text;
-  final RxBool reveal = false.obs;
-  return Get.dialog(
-    AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(title),
-      content: SizedBox(
-        width: 560,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Obx(() {
-                    // Read the observable unconditionally — `obscure && …`
-                    // would short-circuit for plain fields and leave the
-                    // Obx with nothing to observe (GetX throws).
-                    final revealed = reveal.value;
-                    return KeyboardInputBox(
+  bool revealed = false;
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title),
+        content: SizedBox(
+          width: 560,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: KeyboardInputBox(
                       controller: controller,
                       hint: hint,
                       icon: icon,
                       obscure: obscure && !revealed,
                       fontSize: 18,
-                    );
-                  }),
-                ),
-                if (obscure)
-                  Obx(() => IconButton(
-                        tooltip: reveal.value ? 'Hide' : 'Show',
-                        onPressed: () => reveal.value = !reveal.value,
-                        icon: Icon(reveal.value
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                      )),
-              ],
-            ),
-            const SizedBox(height: 12),
-            AppKeyboard(
-              onKey: (k) => applyKeyboardKey(controller, k, maxLength: maxLength),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            controller.text = original;
-            Get.back();
-          },
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Get.back(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+                      maxLines: maxLines,
+                    ),
+                  ),
+                  if (obscure)
+                    IconButton(
+                      tooltip: revealed ? 'Hide' : 'Show',
+                      onPressed: () => setState(() => revealed = !revealed),
+                      icon: Icon(revealed
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              AppKeyboard(
+                layout: layout,
+                allowSpace: allowSpace,
+                onKey: (k) =>
+                    applyKeyboardKey(controller, k, maxLength: maxLength),
+              ),
+            ],
           ),
-          child: const Text('Done'),
         ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: () {
+              controller.text = original;
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
     ),
-    barrierDismissible: false,
   );
 }

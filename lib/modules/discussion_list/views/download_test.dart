@@ -627,6 +627,7 @@ class _Sidebar extends StatelessWidget {
               icon: Icons.tag_rounded,
               fontSize: 13,
               onTap: () => showKeyboardInputDialog(
+                context,
                 title: 'Enter Test ID',
                 controller: testIdCtrl,
                 hint: 'Enter Test ID',
@@ -641,6 +642,7 @@ class _Sidebar extends StatelessWidget {
               obscure: true,
               fontSize: 13,
               onTap: () => showKeyboardInputDialog(
+                context,
                 title: 'Enter Passcode',
                 controller: passcodeCtrl,
                 hint: 'Enter Passcode',
